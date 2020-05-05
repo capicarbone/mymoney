@@ -12,7 +12,7 @@ flask-mongoengine = "*"
 flask-restful = "*"
 flask-httpauth = "*"
 python-dateutil = "*"
-gunircorn = "*"
+gunicorn = "*"
 
 [requires]
 python_version = "3.6"
