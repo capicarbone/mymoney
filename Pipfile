@@ -1,0 +1,18 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+flask = "*"
+mongoengine = "*"
+flask-mongoengine = "*"
+flask-restful = "*"
+flask-httpauth = "*"
+python-dateutil = "*"
+gunircorn = "*"
+
+[requires]
+python_version = "3.6"
