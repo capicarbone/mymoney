@@ -12,7 +12,8 @@ from models.user import User
 app = Flask(__name__, instance_relative_config=True)
 
 app.config['MONGODB_SETTINGS'] = {
-    'host': os.environ.get('MONGODB_URI', 'mongodb://localhost/mymoney')
+    'host': os.environ.get('MONGODB_URI', 'mongodb://localhost/mymoney'),
+    'retryWrites': False
 }
 
 MongoEngine(app)
