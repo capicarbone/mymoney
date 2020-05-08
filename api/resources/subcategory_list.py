@@ -3,7 +3,7 @@ from flask import request
 from flask_restful import fields, Resource, marshal_with
 
 from api.authentication import auth
-from models.category import TransactionCategory
+from models.category import FundCategory
 
 subcategory_fields = {
     'id': fields.String,
@@ -16,11 +16,11 @@ class SubcategoriesList(Resource):
 
     @marshal_with(subcategory_fields)
     def get(self, category_id):
-        query = TransactionCategory.objects(parent=category_id, owner=auth.current_user())
+        query = FundCategory.objects(parent=category_id, owner=auth.current_user())
         return list(query)
 
     @marshal_with(subcategory_fields)
     def post(self, category_id):
-        category = TransactionCategory(name=request.form['name'], owner=auth.current_user(), parent=category_id)
+        category = FundCategory(name=request.form['name'], owner=auth.current_user(), parent=category_id)
         category.save()
         return category

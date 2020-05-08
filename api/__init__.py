@@ -4,6 +4,7 @@ from api.resources.account_list import AccountListResource
 from api.resources.category_list import CategoriesList
 from api.resources.subcategory_list import SubcategoriesList
 from api.resources.transaction_list import TransactionListResource
+from api.resources.fund_list import FundListResource
 
 from .authentication import auth
 
@@ -11,9 +12,9 @@ bp = Blueprint('api', __name__, url_prefix='/api')
 api = Api(bp)
 
 resources = (
-    ('/categories', CategoriesList),
-    ('/categories/<string:category_id>/subcategories', SubcategoriesList),
-
+    #('/categories/<string:category_id>/subcategories', SubcategoriesList),
+    ('/funds', FundListResource),
+    ('/funds/<string:fund_id>/categories', CategoriesList),
     ('/accounts', AccountListResource),
     ('/transactions', TransactionListResource)
 )

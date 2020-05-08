@@ -2,7 +2,7 @@ import mongoengine
 from flask_mongoengine import Document
 import datetime
 from .account import Account
-from .category import TransactionCategory
+from .category import FundCategory
 
 
 class AccountTransaction(Document):
@@ -11,5 +11,5 @@ class AccountTransaction(Document):
     time_accomplished = mongoengine.DateTimeField(required=True)
     change = mongoengine.FloatField(required=True)
     created_at = mongoengine.DateTimeField(default=lambda: datetime.datetime.now() )
-    category = mongoengine.ReferenceField(TransactionCategory)
+    category = mongoengine.ReferenceField(FundCategory)
 
