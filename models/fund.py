@@ -5,7 +5,7 @@ from models.user import User
 
 class FundQuerySet(mongoengine.QuerySet):
 
-    def actives_for(self, owner):
+    def actives_for(self, owner) -> 'Fund':
         return self.filter(is_active=True, owner=owner)
 
 class Fund(mongoengine.Document):
@@ -29,3 +29,4 @@ class Fund(mongoengine.Document):
 
         if self.minimum_limit >= self.maximum_limit:
             raise mongoengine.ValidationError('Minimun limit must be less than maximum limit.')
+
