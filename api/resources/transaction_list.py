@@ -31,6 +31,7 @@ class TransactionListResource(Resource):
         parser.add_argument('time_accomplished', type=lambda t: dateutil.parser.parse(t))
         args = parser.parse_args()
 
+        args['owner'] = auth.current_user()
         transaction = AccountTransaction(**args)
         transaction.save()
 

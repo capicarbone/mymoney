@@ -3,14 +3,22 @@ import mongoengine
 from models.category import FundCategory
 from models.user import User
 
+class FundQuerySet(mongoengine.QuerySet):
+
+    def actives_for(self, owner):
+        return self.filter(is_active=True, owner=owner)
+
 class Fund(mongoengine.Document):
+    owner = mongoengine.ReferenceField(User, required=True)
     name = mongoengine.StringField(required=True)
     description = mongoengine.StringField()
     minimum_limit = mongoengine.FloatField()
     maximum_limit = mongoengine.FloatField()
     percentage_assigment = mongoengine.FloatField(required=True)
+    is_active = mongoengine.BooleanField(default=True)
     categories = mongoengine.ListField(mongoengine.ReferenceField(FundCategory))
-    owner = mongoengine.ReferenceField(User, required=True)
+
+    meta = {'queryset_class': FundQuerySet}
 
     def clean(self):
 
