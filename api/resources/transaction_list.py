@@ -1,7 +1,7 @@
 
 from flask import request
 from flask_restful import fields, Resource, reqparse, marshal_with
-from models.transaction import AccountTransaction
+from models.transaction import Transaction
 from api.authentication import auth
 import dateutil.parser
 
@@ -32,7 +32,7 @@ class TransactionListResource(Resource):
         args = parser.parse_args()
 
         args['owner'] = auth.current_user()
-        transaction = AccountTransaction(**args)
+        transaction = Transaction(**args)
         transaction.save()
 
         return transaction
@@ -50,4 +50,4 @@ class TransactionListResource(Resource):
         if args['account']:
             query['account'] = args['account']
 
-        return AccountTransaction.objects(**query).paginate(page=args['page'], per_page=args['page_size']).items
+        return Transaction.objects(**query).paginate(page=args['page'], per_page=args['page_size']).items

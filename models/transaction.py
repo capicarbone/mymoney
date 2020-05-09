@@ -16,7 +16,7 @@ def validate_change(value: float):
 
 
 
-class AccountTransaction(Document):
+class Transaction(Document):
     owner = mongoengine.ReferenceField(User)
     description = mongoengine.StringField(max_length=50)
     account = mongoengine.ReferenceField(Account, required=True)
@@ -44,11 +44,11 @@ class AccountTransaction(Document):
 
             if last_transaction:
                 fund_transaction = last_transaction.get_fund_transaction(fund)
-                balance = fund_transaction.current_balance + change
+                balance = fund_transaction.balance + change
             else:
                 balance = change
 
-            f_transaction = FundTransaction(current_balance=balance, change=change, fund=fund)
+            f_transaction = FundTransaction(balance=balance, change=change, fund=fund)
             self.fund_transactions.append(f_transaction)
 
     def __process_expense(self):
@@ -56,30 +56,30 @@ class AccountTransaction(Document):
         fund = Fund.objects(categories=self.category).get()
         last_transaction = self.last_transaction_for(fund).get_fund_transaction(fund)
 
-        print("last transaction balance " + str(last_transaction.current_balance))
+        print("last transaction balance " + str(last_transaction.balance))
 
-        if last_transaction.current_balance + self.change < 0:
+        if last_transaction.balance + self.change < 0:
             raise mongoengine.ValidationError('Insufficient funds')
 
-        new_fund_transaction = FundTransaction(current_balance=last_transaction.current_balance + self.change,
+        new_fund_transaction = FundTransaction(balance=last_transaction.balance + self.change,
                                                change=self.change,
                                                fund=fund)
 
         self.fund_transactions.append(new_fund_transaction)
 
     @classmethod
-    def pre_save_post_validation(cls, sender, document: 'AccountTransaction', created):
+    def pre_save_post_validation(cls, sender, document: 'Transaction', created):
         if document.is_income():
             document.__proccess_income()
         else:
             document.__process_expense()
 
     @classmethod
-    def last_transaction_for(cls, fund: Fund) -> 'AccountTransaction':
+    def last_transaction_for(cls, fund: Fund) -> 'Transaction':
         try:
-            return AccountTransaction.objects(owner=fund.owner, fund_transactions__fund=fund) \
+            return Transaction.objects(owner=fund.owner, fund_transactions__fund=fund) \
                 .order_by('-time_accomplished', '-created_at')[0]
         except IndexError:
             return None
 
-signals.pre_save_post_validation.connect(AccountTransaction.pre_save_post_validation, sender=AccountTransaction)
+signals.pre_save_post_validation.connect(Transaction.pre_save_post_validation, sender=Transaction)
