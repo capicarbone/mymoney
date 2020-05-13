@@ -1,4 +1,5 @@
 import mongoengine
+from typing import List
 from mongoengine import signals
 from flask_mongoengine import Document
 import datetime
@@ -40,32 +41,27 @@ class Transaction(Document):
 
             change = self.change * fund.percentage_assigment
 
-            last_transaction = self.last_transaction_for(fund)
-
-            if last_transaction:
-                fund_transaction = last_transaction.get_fund_transaction(fund)
-                balance = fund_transaction.balance + change
-            else:
-                balance = change
-
-            f_transaction = FundTransaction(balance=balance, change=change, fund=fund)
+            f_transaction = FundTransaction(change=change,
+                                            assigment=fund.percentage_assigment,
+                                            fund=fund)
             self.fund_transactions.append(f_transaction)
 
     def __process_expense(self):
 
         fund = Fund.objects(categories=self.category).get()
-        last_transaction = self.last_transaction_for(fund).get_fund_transaction(fund)
+        #last_transaction = self.last_transaction_for(fund).get_fund_transaction(fund)
 
-        print("last transaction balance " + str(last_transaction.balance))
+        # TODO: Validate enough balance
 
-        if last_transaction.balance + self.change < 0:
-            raise mongoengine.ValidationError('Insufficient funds')
+        #if last_transaction.balance + self.change < 0:
+        #    raise mongoengine.ValidationError('Insufficient funds')
 
-        new_fund_transaction = FundTransaction(balance=last_transaction.balance + self.change,
-                                               change=self.change,
+        new_fund_transaction = FundTransaction(change=self.change,
+                                               assigment=1,
                                                fund=fund)
 
         self.fund_transactions.append(new_fund_transaction)
+
 
     @classmethod
     def pre_save_post_validation(cls, sender, document: 'Transaction', created):
@@ -74,12 +70,12 @@ class Transaction(Document):
         else:
             document.__process_expense()
 
-    @classmethod
-    def last_transaction_for(cls, fund: Fund) -> 'Transaction':
-        try:
-            return Transaction.objects(owner=fund.owner, fund_transactions__fund=fund) \
-                .order_by('-time_accomplished', '-created_at')[0]
-        except IndexError:
-            return None
+    # @classmethod
+    # def last_transaction_for(cls, fund: Fund) -> 'Transaction':
+    #     try:
+    #         return Transaction.objects(owner=fund.owner, fund_transactions__fund=fund) \
+    #             .order_by('-time_accomplished', '-created_at')[0]
+    #     except IndexError:
+    #         return None
 
 signals.pre_save_post_validation.connect(Transaction.pre_save_post_validation, sender=Transaction)
