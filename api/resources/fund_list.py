@@ -13,7 +13,9 @@ fund_fields = {
     'minimum_limit': fields.Float,
     'maximum_limit': fields.Float,
     'percentage_assigment': fields.Float,
+    'balance': fields.Float(attribute=lambda x: x.get_balance()),
     'categories': fields.List(fields.Nested(category_fields))
+
 }
 
 class FundListResource(Resource):

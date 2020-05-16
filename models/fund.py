@@ -2,6 +2,7 @@
 import mongoengine
 from models.category import FundCategory
 from models.user import User
+from mongoengine.connection import get_db
 
 class FundQuerySet(mongoengine.QuerySet):
 
@@ -29,4 +30,18 @@ class Fund(mongoengine.Document):
 
         if self.minimum_limit >= self.maximum_limit:
             raise mongoengine.ValidationError('Minimun limit must be less than maximum limit.')
+
+
+    def get_balance(self):
+        db = get_db()
+
+        pipeline = [
+            {'$unwind': '$fund_transactions'},
+            {'$match': {'owner': self.owner.id, 'fund_transactions.fund': self.id}},
+            {'$group': {'_id': '$fund_transactions.fund', 'balance': {'$sum': '$fund_transactions.change'}}}
+        ]
+
+        result = db.transaction.aggregate(pipeline).next()
+
+        return result['balance']
 

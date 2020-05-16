@@ -1,5 +1,4 @@
 import mongoengine
-import datetime
 from models.fund import Fund
 
 class FundTransaction(mongoengine.EmbeddedDocument):
