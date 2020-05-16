@@ -41,7 +41,10 @@ class Fund(mongoengine.Document):
             {'$group': {'_id': '$fund_transactions.fund', 'balance': {'$sum': '$fund_transactions.change'}}}
         ]
 
-        result = db.transaction.aggregate(pipeline).next()
+        try:
+            result = db.transaction.aggregate(pipeline).next()
+        except StopIteration:
+            return 0
 
         return result['balance']
 
