@@ -10,7 +10,7 @@ class FundQuerySet(mongoengine.QuerySet):
         return self.filter(is_active=True, owner=owner)
 
 class Fund(mongoengine.Document):
-    owner = mongoengine.ReferenceField(User, required=True)
+    owner = mongoengine.LazyReferenceField(User, required=True)
     name = mongoengine.StringField(required=True)
     description = mongoengine.StringField()
     minimum_limit = mongoengine.FloatField()
@@ -32,7 +32,7 @@ class Fund(mongoengine.Document):
             raise mongoengine.ValidationError('Minimun limit must be less than maximum limit.')
 
 
-    def get_balance(self):
+    def get_balance(self) -> float:
         db = get_db()
 
         pipeline = [

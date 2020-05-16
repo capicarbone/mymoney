@@ -5,7 +5,8 @@ from models.account import Account
 
 account_fields = {
     'id': fields.String,
-    'name': fields.String
+    'name': fields.String,
+    'balance': fields.Float(attribute=lambda x: x.get_balance())
 }
 
 class AccountListResource(Resource):
