@@ -1,4 +1,5 @@
 
+from typing import List
 from flask_restful import Resource, marshal_with, fields, reqparse
 from api.authentication import auth
 from models.account import Account
@@ -13,11 +14,11 @@ class AccountListResource(Resource):
     method_decorators = [auth.login_required]
 
     @marshal_with(account_fields)
-    def get(self):
+    def get(self) -> List[Account]:
         return list(Account.objects(owner=auth.current_user()))
 
     @marshal_with(account_fields)
-    def post(self):
+    def post(self) -> Account:
         parser = reqparse.RequestParser()
         parser.add_argument('name', required=True)
         args = parser.parse_args()
