@@ -3,10 +3,14 @@ import mongoengine
 from models.category import FundCategory
 from mongoengine.connection import get_db
 
+
 class FundQuerySet(mongoengine.QuerySet):
 
-    def actives_for(self, owner) -> 'Fund':
+    def actives_for(self, owner):
         return self.filter(is_active=True, owner=owner)
+
+    def default_for(self, owner) -> 'Fund':
+        return self.filter(owner=owner, is_default=True).get()
 
 class Fund(mongoengine.Document):
     owner = mongoengine.LazyReferenceField('User', required=True)
@@ -47,4 +51,16 @@ class Fund(mongoengine.Document):
             return 0
 
         return result['balance']
+
+    def get_deficit(self) -> float:
+
+        if self.minimum_limit is None:
+            return 0.0
+
+        difference = self.minimum_limit - self.get_balance()
+
+        if difference > 0:
+            return difference
+        else:
+            return 0.0
 

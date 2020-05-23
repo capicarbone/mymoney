@@ -32,15 +32,76 @@ class Transaction(Document):
     def __proccess_income(self):
 
         funds = Fund.objects().actives_for(self.owner)
+        default_fund: Fund = None
+        remaining = self.change
+        total_adjustment = 0.0
 
-        for fund in funds:
+        funds_in_deficit = [fund for fund in funds if fund.get_deficit() > 0]
 
-            change = self.change * fund.percentage_assigment
+        total_deficit = sum([fund.get_deficit() for fund in funds_in_deficit])
 
-            f_transaction = FundTransaction(change=change,
-                                            assigment=fund.percentage_assigment,
-                                            fund=fund)
-            self.fund_transactions.append(f_transaction)
+        # Making assigment on funds with deficit, must be the priority
+        for fund in funds_in_deficit:
+
+            to_assign: float = self.change * fund.percentage_assigment
+
+            if total_deficit > self.change:
+                to_assign = self.change / len(funds_in_deficit)
+            else:
+                if to_assign < fund.get_deficit():
+                    adjustment = fund.get_deficit() - to_assign
+                    to_assign = to_assign + adjustment
+                    total_adjustment = total_adjustment + adjustment
+                else:
+                    if fund.maximum_limit and to_assign + fund.get_balance() > fund.maximum_limit:
+                        to_assign = to_assign - ((to_assign + fund.get_balance()) - fund.maximum_limit)
+
+            fund_transaction = FundTransaction(change=to_assign,
+                                               assigment=to_assign / self.change,
+                                               fund=fund)
+            self.fund_transactions.append(fund_transaction)
+            remaining = remaining - to_assign
+
+            print("To assign " + str(to_assign))
+            print("remaining is " + str(remaining))
+
+        print("Total deficit " + str(total_deficit))
+        assert 0 <= remaining <= self.change
+
+        # Taking funds that does not have assigment yet
+        funds_for_assignment = [fund for fund in funds if not next((t for t in self.fund_transactions if t.fund == fund),None)]
+
+        if remaining > 0.009:
+            adjustment = total_adjustment / len(funds_for_assignment)
+            for fund in funds_for_assignment:
+
+                if fund.is_default:
+                    default_fund = fund
+                    continue
+
+                if fund.maximum_limit is not None and fund.get_balance() >= fund.maximum_limit:
+                    continue
+
+                to_assign = (self.change * fund.percentage_assigment) - adjustment
+
+                f_transaction = FundTransaction(change=to_assign,
+                                                assigment=to_assign / self.change,
+                                                fund=fund)
+                self.fund_transactions.append(f_transaction)
+                remaining = remaining - to_assign
+
+        print("remaining is " + str(remaining))
+        assert 0 <= remaining < self.change
+
+        if remaining > 0.009:
+            fund_transaction = FundTransaction(change=remaining,
+                                               assigment=remaining / self.change,
+                                               fund=default_fund)
+            self.fund_transactions.append(fund_transaction)
+            remaining = remaining - remaining
+
+        assert sum([ft.assigment for ft in self.fund_transactions]) <= 1
+        assert remaining <= 0.01
 
     def __process_expense(self):
 
