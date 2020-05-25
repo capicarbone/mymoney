@@ -65,9 +65,6 @@ class Transaction(Document):
 
             remaining = remaining - to_assign
 
-            #print("To assign " + str(to_assign))
-
-        print("Total deficit " + str(total_deficit))
         assert 0 <= remaining <= self.change
 
         # Taking funds that does not have assigment yet
@@ -91,7 +88,6 @@ class Transaction(Document):
 
         assert 0 <= remaining < self.change
 
-        print("remaining is " + str(remaining))
         if remaining > 0:
             fund_transaction = FundTransaction(change=remaining,
                                                assigment=remaining / self.change,
@@ -122,7 +118,7 @@ class Transaction(Document):
         else:
             document.__process_expense()
 
-        assert 0.99 <= sum([ft.assigment for ft in document.fund_transactions]) <= 1
+        assert 0.99 <= sum([ft.assigment for ft in document.fund_transactions]) <= 1 # for the moment a margin of 0.01 es accepted
         assert sum([ft.change for ft in document.fund_transactions]) == document.change
 
 
