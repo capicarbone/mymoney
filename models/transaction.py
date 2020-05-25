@@ -99,15 +99,14 @@ class Transaction(Document):
             self.fund_transactions.append(fund_transaction)
             remaining = remaining - remaining
 
-        pdb.set_trace()
-
         assert remaining == 0
 
     def __process_expense(self):
 
         fund = Fund.objects(categories=self.category).get()
 
-        # TODO: Validate enough balance
+        if fund.get_balance() - self.change.copy_abs() < 0:
+            raise mongoengine.ValidationError('Not enough balance in fund {}'.format(fund.name))
 
         new_fund_transaction = FundTransaction(change=self.change,
                                                assigment=1,

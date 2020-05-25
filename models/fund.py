@@ -50,7 +50,7 @@ class Fund(mongoengine.Document):
         except StopIteration:
             return Decimal(0.0)
 
-        return Decimal(result['balance'])
+        return Decimal(result['balance']).quantize(Decimal('0.01'))
 
     def get_deficit(self) -> Decimal:
 
@@ -60,7 +60,7 @@ class Fund(mongoengine.Document):
         difference = self.minimum_limit - self.get_balance()
 
         if difference > 0:
-            return difference
+            return difference.quantize(Decimal('0.01'))
         else:
             return Decimal(0.0)
 

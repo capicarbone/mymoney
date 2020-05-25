@@ -1,5 +1,7 @@
 
 from flask import request
+from mongoengine import ValidationError
+import flask
 from flask_restful import fields, Resource, reqparse, marshal_with
 from models.transaction import Transaction
 from api.authentication import auth
@@ -33,7 +35,11 @@ class TransactionListResource(Resource):
 
         args['owner'] = auth.current_user()
         transaction = Transaction(**args)
-        transaction.save()
+
+        try:
+            transaction.save()
+        except ValidationError as ex:
+            flask.abort(400, ex.message)
 
         return transaction
 
