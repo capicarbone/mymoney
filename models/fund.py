@@ -2,7 +2,7 @@
 import mongoengine
 from models.category import FundCategory
 from mongoengine.connection import get_db
-
+from decimal import Decimal
 
 class FundQuerySet(mongoengine.QuerySet):
 
@@ -16,9 +16,9 @@ class Fund(mongoengine.Document):
     owner = mongoengine.LazyReferenceField('User', required=True)
     name = mongoengine.StringField(required=True)
     description = mongoengine.StringField()
-    minimum_limit = mongoengine.FloatField()
-    maximum_limit = mongoengine.FloatField()
-    percentage_assigment = mongoengine.FloatField(required=True)
+    minimum_limit = mongoengine.DecimalField()
+    maximum_limit = mongoengine.DecimalField()
+    percentage_assigment = mongoengine.DecimalField(required=True, precision=2, min_value=0, max_value=1)
     is_active = mongoengine.BooleanField(default=True)
     is_default = mongoengine.BooleanField(default=False)
     categories = mongoengine.ListField(mongoengine.ReferenceField(FundCategory))
@@ -36,7 +36,7 @@ class Fund(mongoengine.Document):
             raise mongoengine.ValidationError('Minimun limit must be less than maximum limit.')
 
 
-    def get_balance(self) -> float:
+    def get_balance(self) -> Decimal:
         db = get_db()
 
         pipeline = [
@@ -48,19 +48,19 @@ class Fund(mongoengine.Document):
         try:
             result = db.transaction.aggregate(pipeline).next()
         except StopIteration:
-            return 0
+            return Decimal(0.0)
 
-        return result['balance']
+        return Decimal(result['balance'])
 
-    def get_deficit(self) -> float:
+    def get_deficit(self) -> Decimal:
 
         if self.minimum_limit is None:
-            return 0.0
+            return Decimal(0.0)
 
         difference = self.minimum_limit - self.get_balance()
 
         if difference > 0:
             return difference
         else:
-            return 0.0
+            return Decimal(0.0)
 

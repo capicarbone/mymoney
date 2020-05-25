@@ -1,5 +1,6 @@
 import os
 import click
+import decimal
 from flask import Flask
 
 from flask_mongoengine import MongoEngine
@@ -8,7 +9,7 @@ from werkzeug.security import generate_password_hash
 
 from models.user import User
 
-
+#decimal.getcontext().prec = 2
 app = Flask(__name__, instance_relative_config=True)
 
 app.config['MONGODB_SETTINGS'] = {

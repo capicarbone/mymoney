@@ -1,3 +1,4 @@
+from decimal import Decimal
 import mongoengine
 from mongoengine import signals
 from flask_mongoengine import Document
@@ -7,6 +8,7 @@ from .fund import Fund
 from .category import FundCategory
 from models.fund_transaction import FundTransaction
 from models.user import User
+import pdb
 
 def validate_change(value: float):
     if value == 0:
@@ -18,7 +20,7 @@ class Transaction(Document):
     description = mongoengine.StringField(max_length=50)
     account = mongoengine.ReferenceField(Account, required=True)
     time_accomplished = mongoengine.DateTimeField(required=True)
-    change = mongoengine.FloatField(required=True, validation=validate_change)
+    change = mongoengine.DecimalField(required=True, validation=validate_change)
     created_at = mongoengine.DateTimeField(default=lambda: datetime.datetime.now())
     category = mongoengine.ReferenceField(FundCategory)
     fund_transactions = mongoengine.EmbeddedDocumentListField(FundTransaction)
@@ -32,9 +34,9 @@ class Transaction(Document):
     def __proccess_income(self):
 
         funds = Fund.objects().actives_for(self.owner)
-        default_fund: Fund = None
+        default_fund: Fund = next((fund for fund in funds if fund.is_default))
         remaining = self.change
-        total_adjustment = 0.0
+        total_adjustment = Decimal(0)
 
         funds_in_deficit = [fund for fund in funds if fund.get_deficit() > 0]
 
@@ -43,10 +45,10 @@ class Transaction(Document):
         # Making assigment on funds with deficit, must be the priority
         for fund in funds_in_deficit:
 
-            to_assign: float = self.change * fund.percentage_assigment
+            to_assign: Decimal = Decimal(self.change * fund.percentage_assigment)
 
             if total_deficit > self.change:
-                to_assign = self.change / len(funds_in_deficit)
+                to_assign = (self.change / len(funds_in_deficit)).quantize(Decimal('1.01'))
             else:
                 if to_assign < fund.get_deficit():
                     adjustment = fund.get_deficit() - to_assign
@@ -60,24 +62,21 @@ class Transaction(Document):
                                                assigment=to_assign / self.change,
                                                fund=fund)
             self.fund_transactions.append(fund_transaction)
+
             remaining = remaining - to_assign
 
-            print("To assign " + str(to_assign))
-            print("remaining is " + str(remaining))
+            #print("To assign " + str(to_assign))
 
         print("Total deficit " + str(total_deficit))
         assert 0 <= remaining <= self.change
 
         # Taking funds that does not have assigment yet
-        funds_for_assignment = [fund for fund in funds if not next((t for t in self.fund_transactions if t.fund == fund),None)]
+        funds_for_assignment = [fund for fund in funds if not next((t for t in self.fund_transactions if t.fund == fund and not fund.is_default),None)]
 
-        if remaining > 0.009:
+
+        if remaining > 0 and False:
             adjustment = total_adjustment / len(funds_for_assignment)
             for fund in funds_for_assignment:
-
-                if fund.is_default:
-                    default_fund = fund
-                    continue
 
                 if fund.maximum_limit is not None and fund.get_balance() >= fund.maximum_limit:
                     continue
@@ -90,18 +89,19 @@ class Transaction(Document):
                 self.fund_transactions.append(f_transaction)
                 remaining = remaining - to_assign
 
-        print("remaining is " + str(remaining))
         assert 0 <= remaining < self.change
 
-        if remaining > 0.009:
+        print("remaining is " + str(remaining))
+        if remaining > 0:
             fund_transaction = FundTransaction(change=remaining,
                                                assigment=remaining / self.change,
                                                fund=default_fund)
             self.fund_transactions.append(fund_transaction)
             remaining = remaining - remaining
 
-        assert sum([ft.assigment for ft in self.fund_transactions]) <= 1
-        assert remaining <= 0.01
+        pdb.set_trace()
+
+        assert remaining == 0
 
     def __process_expense(self):
 
@@ -123,6 +123,8 @@ class Transaction(Document):
         else:
             document.__process_expense()
 
+        assert 0.99 <= sum([ft.assigment for ft in document.fund_transactions]) <= 1
+        assert sum([ft.change for ft in document.fund_transactions]) == document.change
 
 
 signals.pre_save_post_validation.connect(Transaction.pre_save_post_validation, sender=Transaction)
