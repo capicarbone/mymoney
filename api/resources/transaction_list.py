@@ -23,25 +23,31 @@ transaction_fields = {
 class TransactionListResource(Resource):
     method_decorators = [auth.login_required]
 
-    @marshal_with(transaction_fields)
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('description')
         parser.add_argument('change', type=float, required=True)
-        parser.add_argument('category', required=True)
+        parser.add_argument('category')
         parser.add_argument('account', required=True)
         parser.add_argument('time_accomplished', type=lambda t: dateutil.parser.parse(t))
         args = parser.parse_args()
 
-        args['owner'] = auth.current_user()
-        transaction = Transaction(**args)
+
+        if args['change'] > 0:
+            transaction = Transaction.create_income(args['account'],
+                                                    args['change'],
+                                                    args['description'],
+                                                    args['time_accomplished'],
+                                                    auth.current_user())
 
         try:
             transaction.save()
         except ValidationError as ex:
             flask.abort(400, ex.message)
 
-        return transaction
+        args['time_accomplished'] = str(args['time_accomplished'])
+        return args
+
 
     @marshal_with(transaction_fields)
     def get(self):
