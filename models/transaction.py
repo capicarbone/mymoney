@@ -19,9 +19,7 @@ def validate_change(value: float):
 class Transaction(Document):
     owner = mongoengine.LazyReferenceField(User)
     description = mongoengine.StringField(max_length=50)
-    #account = mongoengine.ReferenceField(Account, required=True)
     time_accomplished = mongoengine.DateTimeField(required=True)
-    #change = mongoengine.DecimalField(required=True, validation=validate_change)
     created_at = mongoengine.DateTimeField(default=lambda: datetime.datetime.now())
     category = mongoengine.ReferenceField(FundCategory)
     account_transactions = mongoengine.EmbeddedDocumentListField(AccountTransaction)
@@ -29,7 +27,26 @@ class Transaction(Document):
 
     @classmethod
     def create_income(cls, accountId: str, change: Decimal, description: str, time_accomplished: datetime, owner: User):
+
+        if change <= 0:
+            raise mongoengine.ValidationError("Change must be positive for an income")
+
         new_transaction = Transaction(description=description, time_accomplished=time_accomplished, owner=owner)
+        account_transaction = AccountTransaction(account=accountId, change=change)
+        new_transaction.account_transactions.append(account_transaction)
+
+        return new_transaction
+
+
+    @classmethod
+    def create_expense(cls, accountId: str, change: Decimal, description: str, time_accomplished: datetime,
+                       categoryId: str,
+                        owner: User):
+
+        if change >= 0:
+            raise mongoengine.ValidationError("Change must be negative for an outcome")
+
+        new_transaction = Transaction(description=description, category=categoryId, time_accomplished=time_accomplished, owner=owner)
         account_transaction = AccountTransaction(account=accountId, change=change)
         new_transaction.account_transactions.append(account_transaction)
 
@@ -59,8 +76,6 @@ class Transaction(Document):
         # Making assigment on funds with deficit, must be the priority
         for fund in funds_in_deficit:
 
-            #pdb.set_trace()
-
             to_assign: Decimal = Decimal(self.total_change * fund.percentage_assigment)
 
             if total_deficit > self.total_change:
@@ -83,7 +98,7 @@ class Transaction(Document):
 
             remaining = remaining - to_assign
 
-        #pdb.set_trace()
+
         assert 0 <= remaining <= self.total_change
 
         # Taking funds that does not have assigment yet
@@ -118,9 +133,6 @@ class Transaction(Document):
                                                assigment=to_assign / self.total_change,
                                                fund=default_fund)
             self.fund_transactions.append(fund_transaction)
-            #remaining = remaining - remaining
-
-        #assert remaining == 0
 
     def __process_expense(self):
 

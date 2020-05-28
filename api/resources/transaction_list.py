@@ -40,6 +40,14 @@ class TransactionListResource(Resource):
                                                     args['time_accomplished'],
                                                     auth.current_user())
 
+        if args['change'] < 0:
+            transaction = Transaction.create_expense(args['account'],
+                                                    args['change'],
+                                                    args['description'],
+                                                    args['time_accomplished'],
+                                                    args['category'],
+                                                    auth.current_user())
+
         try:
             transaction.save()
         except ValidationError as ex:
