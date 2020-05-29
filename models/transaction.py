@@ -86,8 +86,8 @@ class Transaction(Document):
                     to_assign = to_assign + adjustment
                     total_adjustment = total_adjustment + adjustment
                 else:
-                    if fund.maximum_limit and to_assign + fund.get_balance() > fund.maximum_limit:
-                        to_assign = to_assign - ((to_assign + fund.get_balance()) - fund.maximum_limit)
+                    if fund.maximum_limit and to_assign + fund.balance > fund.maximum_limit:
+                        to_assign = to_assign - ((to_assign + fund.balance) - fund.maximum_limit)
 
             to_assign = to_assign if to_assign <= remaining else remaining
 
@@ -109,7 +109,7 @@ class Transaction(Document):
             adjustment = total_adjustment / len(funds_for_assignment)
             for fund in funds_for_assignment:
 
-                if fund.maximum_limit is not None and fund.get_balance() >= fund.maximum_limit:
+                if fund.maximum_limit is not None and fund.balance >= fund.maximum_limit:
                     continue
 
                 to_assign = (self.total_change * fund.percentage_assigment) - adjustment
@@ -138,7 +138,7 @@ class Transaction(Document):
 
         fund = Fund.objects(categories=self.category).get()
 
-        if fund.get_balance() - self.total_change.copy_abs() < 0:
+        if fund.balance - self.total_change.copy_abs() < 0:
             raise mongoengine.ValidationError('Not enough balance in fund {}'.format(fund.name))
 
         new_fund_transaction = FundTransaction(change=self.total_change,

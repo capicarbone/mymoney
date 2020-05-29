@@ -36,7 +36,8 @@ class Fund(mongoengine.Document):
             raise mongoengine.ValidationError('Minimun limit must be less than maximum limit.')
 
 
-    def get_balance(self) -> Decimal:
+    @property
+    def balance(self) -> Decimal:
         db = get_db()
 
         pipeline = [
@@ -57,7 +58,7 @@ class Fund(mongoengine.Document):
         if self.minimum_limit is None:
             return Decimal(0.0)
 
-        difference = self.minimum_limit - self.get_balance()
+        difference = self.minimum_limit - self.balance
 
         if difference > 0:
             return difference.quantize(Decimal('0.01'))
