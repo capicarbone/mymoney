@@ -1,15 +1,18 @@
 
 import flask
 import mongoengine
-from flask_restful import Resource, reqparse
+from flask_restful import Resource, reqparse, marshal_with
 from api.authentication import auth
 import dateutil.parser
 from decimal import Decimal
 from models.transaction import Transaction
 
+from api.resources.account_transaction_list import transaction_fields
+
 class AccountTransactionTransfer(Resource):
     method_decorators = [auth.login_required]
 
+    @marshal_with(transaction_fields)
     def post(self, account_id):
         parser = reqparse.RequestParser()
         parser.add_argument('to', type=str, required=True)
@@ -23,4 +26,4 @@ class AccountTransactionTransfer(Resource):
                                                           time_accomplished=args['time_accomplished'])
         transaction.save()
 
-        return {'id': str(transaction.id)}
+        return transaction
