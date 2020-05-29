@@ -3,7 +3,7 @@ from flask_restful import Api
 from api.resources.account_list import AccountListResource
 from api.resources.category_list import CategoriesList
 from api.resources.subcategory_list import SubcategoriesList
-from api.resources.transaction_list import AccountTransactionListResource
+from api.resources.account_transaction_list import AccountTransactionListResource
 from api.resources.fund_list import FundListResource
 
 from .authentication import auth
