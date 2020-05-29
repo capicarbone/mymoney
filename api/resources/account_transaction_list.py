@@ -7,8 +7,6 @@ from models.transaction import Transaction
 from api.authentication import auth
 import dateutil.parser
 
-from flask_mongoengine import MongoEngine
-
 transaction_fields = {
     'id': fields.String,
     'description': fields.String,

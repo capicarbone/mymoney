@@ -51,9 +51,25 @@ class Transaction(Document):
 
         return new_transaction
 
+    @classmethod
+    def create_account_transfer(cls, owner:User, from_account_id:str, to_account_id:str, amount:Decimal, description:str, time_accomplished:datetime ):
+        if amount == 0:
+            raise mongoengine.ValidationError("Amount must be different than zero")
+
+        new_transaction = Transaction(owner=owner, description=description, time_accomplished=time_accomplished)
+        from_account_transaction = AccountTransaction(account=from_account_id, change=-amount)
+        to_account_transaction = AccountTransaction(account=to_account_id, change=amount)
+        new_transaction.account_transactions.append(from_account_transaction)
+        new_transaction.account_transactions.append(to_account_transaction)
+
+        return new_transaction
+
     @property
     def total_change(self) -> Decimal:
         return sum([t.change for t in self.account_transactions])
+
+    def is_transfer(self) -> bool:
+        return self.total_change == 0
 
     def is_income(self) -> bool:
         return self.total_change > 0
@@ -149,13 +165,14 @@ class Transaction(Document):
 
     @classmethod
     def pre_save_post_validation(cls, sender, document: 'Transaction', created):
-        if document.is_income():
-            document.__proccess_income()
-        else:
-            document.__process_expense()
+        if not document.is_transfer():
+            if  document.is_income():
+                document.__proccess_income()
+            else:
+                document.__process_expense()
 
-        assert 0.99 <= sum([ft.assigment for ft in document.fund_transactions]) <= 1 # for the moment a margin of 0.01 es accepted
-        assert sum([ft.change for ft in document.fund_transactions]) == document.total_change
+            assert 0.99 <= sum([ft.assigment for ft in document.fund_transactions]) <= 1 # for the moment a margin of 0.01 es accepted
+            assert sum([ft.change for ft in document.fund_transactions]) == document.total_change
 
 
 signals.pre_save_post_validation.connect(Transaction.pre_save_post_validation, sender=Transaction)

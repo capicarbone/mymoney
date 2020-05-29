@@ -4,6 +4,7 @@ from api.resources.account_list import AccountListResource
 from api.resources.category_list import CategoriesList
 from api.resources.subcategory_list import SubcategoriesList
 from api.resources.account_transaction_list import AccountTransactionListResource
+from api.resources.account_transaction_transfer import AccountTransactionTransfer
 from api.resources.fund_list import FundListResource
 
 from .authentication import auth
@@ -16,7 +17,8 @@ resources = (
     ('/funds', FundListResource),
     ('/funds/<string:fund_id>/categories', CategoriesList),
     ('/accounts', AccountListResource),
-    ('/accounts/<string:account_id>/transactions', AccountTransactionListResource)
+    ('/accounts/<string:account_id>/transactions', AccountTransactionListResource),
+    ('/accounts/<string:account_id>/transactions/transfer', AccountTransactionTransfer)
 )
 
 for resource in resources:
