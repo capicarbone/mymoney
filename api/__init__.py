@@ -3,7 +3,7 @@ from flask_restful import Api
 from api.resources.account_list import AccountListResource
 from api.resources.category_list import CategoriesList
 from api.resources.subcategory_list import SubcategoriesList
-from api.resources.transaction_list import TransactionListResource
+from api.resources.transaction_list import AccountTransactionListResource
 from api.resources.fund_list import FundListResource
 
 from .authentication import auth
@@ -16,7 +16,7 @@ resources = (
     ('/funds', FundListResource),
     ('/funds/<string:fund_id>/categories', CategoriesList),
     ('/accounts', AccountListResource),
-    ('/transactions', TransactionListResource)
+    ('/accounts/<string:account_id>/transactions', AccountTransactionListResource)
 )
 
 for resource in resources:

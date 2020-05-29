@@ -26,28 +26,27 @@ class Transaction(Document):
     fund_transactions = mongoengine.EmbeddedDocumentListField(FundTransaction)
 
     @classmethod
-    def create_income(cls, accountId: str, change: Decimal, description: str, time_accomplished: datetime, owner: User):
+    def create_income(cls, account_id: str, change: Decimal, description: str, time_accomplished: datetime, owner: User):
 
         if change <= 0:
             raise mongoengine.ValidationError("Change must be positive for an income")
 
         new_transaction = Transaction(description=description, time_accomplished=time_accomplished, owner=owner)
-        account_transaction = AccountTransaction(account=accountId, change=change)
+        account_transaction = AccountTransaction(account=account_id, change=change)
         new_transaction.account_transactions.append(account_transaction)
 
         return new_transaction
 
 
     @classmethod
-    def create_expense(cls, accountId: str, change: Decimal, description: str, time_accomplished: datetime,
-                       categoryId: str,
-                        owner: User):
+    def create_expense(cls, account_id: str, change: Decimal, description: str, time_accomplished: datetime,
+                       category_id: str, owner: User):
 
         if change >= 0:
             raise mongoengine.ValidationError("Change must be negative for an outcome")
 
-        new_transaction = Transaction(description=description, category=categoryId, time_accomplished=time_accomplished, owner=owner)
-        account_transaction = AccountTransaction(account=accountId, change=change)
+        new_transaction = Transaction(description=description, category=category_id, time_accomplished=time_accomplished, owner=owner)
+        account_transaction = AccountTransaction(account=account_id, change=change)
         new_transaction.account_transactions.append(account_transaction)
 
         return new_transaction
