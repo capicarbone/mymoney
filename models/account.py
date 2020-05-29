@@ -8,12 +8,14 @@ class Account(mongoengine.Document):
     owner = mongoengine.LazyReferenceField(User, required=True)
     created_at = mongoengine.DateTimeField(default=lambda: datetime.datetime.now())
 
-    def get_balance(self) -> float:
+    @property
+    def balance(self) -> float:
         db = get_db()
 
         pipeline = [
-            {'$match': {'account': self.id, 'owner': self.owner.id}},
-            {'$group': {'_id': '$account', 'balance': {'$sum': '$change'}}}
+            {'$unwind': '$account_transactions'},
+            {'$match': {'owner': self.owner.id, 'account_transactions.account': self.id}},
+            {'$group': {'_id': '$account_transactions.account', 'balance': {'$sum': '$account_transactions.change'}}}
         ]
 
         try:

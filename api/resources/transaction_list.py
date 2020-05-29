@@ -26,7 +26,7 @@ class TransactionListResource(Resource):
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('description')
-        parser.add_argument('change', type=float, required=True)
+        parser.add_argument('change', type=float, required=True) # TODO: Add validation, must be different from 0
         parser.add_argument('category')
         parser.add_argument('account', required=True)
         parser.add_argument('time_accomplished', type=lambda t: dateutil.parser.parse(t))
