@@ -58,15 +58,18 @@ class Fund(mongoengine.Document):
 
         return Decimal(result['balance']).quantize(Decimal('0.01'))
 
-    def get_deficit(self) -> Decimal:
-
+    def get_deficit_from(self, from_time) -> Decimal:
         if self.minimum_limit is None:
             return Decimal(0.0)
 
-        difference = self.minimum_limit - self.balance
+        difference = self.minimum_limit - self.balance_from(from_time)
 
         if difference > 0:
             return difference.quantize(Decimal('0.01'))
         else:
             return Decimal(0.0)
+
+    def get_deficit(self) -> Decimal:
+        return self.get_deficit_from(datetime.now())
+
 
