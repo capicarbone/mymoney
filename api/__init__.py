@@ -17,8 +17,8 @@ resources = (
     ('/funds', FundListResource),
     ('/funds/<string:fund_id>/categories', CategoriesList),
     ('/accounts', AccountListResource),
-    ('/accounts/<string:account_id>/transactions', AccountTransactionListResource),
-    ('/accounts/<string:account_id>/transactions/transfer', AccountTransactionTransfer)
+    ('/account/<string:account_id>/transactions', AccountTransactionListResource),
+    ('/account/<string:account_id>/transactions/transfer', AccountTransactionTransfer)
 )
 
 for resource in resources:
