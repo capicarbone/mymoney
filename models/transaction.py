@@ -165,6 +165,8 @@ class Transaction(Document):
 
     @classmethod
     def pre_save_post_validation(cls, sender, document: 'Transaction', created):
+
+        print('called')
         if not document.is_transfer():
             if  document.is_income():
                 document.__proccess_income()

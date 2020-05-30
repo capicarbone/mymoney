@@ -1,0 +1,33 @@
+
+import flask
+from flask_restful import Resource, marshal_with, reqparse
+from models.transaction import Transaction
+from api.authentication import auth
+from api.resources.account_transaction_list import transaction_fields
+import dateutil.parser
+from bson.objectid import ObjectId
+
+class AccountTransactionResource(Resource):
+
+    method_decorators = [auth.login_required]
+
+    @marshal_with(transaction_fields)
+    def put(self, account_id, transaction_id):
+        parser = reqparse.RequestParser()
+        parser.add_argument('description', store_missing=False)
+        #parser.add_argument('change', type=float, store_missing=False)  # TODO: Add validation, must be different from 0
+        parser.add_argument('account', type=float, store_missing=False)
+        parser.add_argument('category', type=ObjectId, store_missing=False)
+        parser.add_argument('time_accomplished', store_missing=False, type=lambda t: dateutil.parser.parse(t))
+        entity_args = parser.parse_args()
+
+        if len(entity_args) == 0:
+            flask.abort(400, "Parameters missing.")
+
+        Transaction.objects(owner=auth.current_user(), id=transaction_id).update(**entity_args)
+        transaction = Transaction.objects(owner=auth.current_user(), id=transaction_id).get()
+
+        return transaction
+
+    def delete(self, account_id, transaction_id):
+        pass
