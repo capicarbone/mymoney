@@ -21,10 +21,18 @@ class AccountTransactionResource(Resource):
         parser.add_argument('time_accomplished', store_missing=False, type=lambda t: dateutil.parser.parse(t))
         entity_args = parser.parse_args()
 
-        if len(entity_args) == 0:
-            flask.abort(400, "Parameters missing.")
+        parser = reqparse.RequestParser()
+        parser.add_argument('change', type=float, store_missing=False)  # TODO: Add validation, must be different from 0
+        change_arg = parser.parse_args()
 
-        Transaction.objects(owner=auth.current_user(), id=transaction_id).update(**entity_args)
+        if len(entity_args) > 0:
+            Transaction.objects(owner=auth.current_user(), id=transaction_id).update(**entity_args)
+
+        if len(change_arg) > 0:
+            transaction = Transaction.objects(owner=auth.current_user(), id=transaction_id).get()
+
+
+
         transaction = Transaction.objects(owner=auth.current_user(), id=transaction_id).get()
 
         return transaction

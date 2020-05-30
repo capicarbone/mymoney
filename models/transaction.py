@@ -64,6 +64,9 @@ class Transaction(Document):
 
         return new_transaction
 
+    def adjust_change(self):
+        pass
+
     @property
     def total_change(self) -> Decimal:
         return sum([t.change for t in self.account_transactions])
