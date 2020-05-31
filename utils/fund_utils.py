@@ -37,6 +37,7 @@ def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_
             if to_assign < fund_deficit:
                 adjustment = fund_deficit - to_assign
                 to_assign = to_assign + adjustment
+                # We are going to use this for adjust on funds without deficit
                 total_adjustment = total_adjustment + adjustment
             else:
                 if fund.maximum_limit and to_assign + fund_balance > fund.maximum_limit:
