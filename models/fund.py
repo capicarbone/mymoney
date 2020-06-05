@@ -4,6 +4,7 @@ from models.category import FundCategory
 from mongoengine.connection import get_db
 from decimal import Decimal
 from datetime import datetime
+from bson.objectid import ObjectId
 
 class FundQuerySet(mongoengine.QuerySet):
 
@@ -41,7 +42,7 @@ class Fund(mongoengine.Document):
     def balance(self) -> Decimal:
         return self.balance_from(datetime.now())
 
-    def balance_from(self, from_time: datetime):
+    def balance_from(self, from_time: datetime, ignoring: ObjectId = None):
         db = get_db()
 
         pipeline = [
@@ -51,6 +52,9 @@ class Fund(mongoengine.Document):
             {'$group': {'_id': '$fund_transactions.fund', 'balance': {'$sum': '$fund_transactions.change'}}}
         ]
 
+        if ignoring:
+            pipeline[1]['$match']['id__ne'] = ignoring # TODO: IT should be improved for not depends of number index
+
         try:
             result = db.transaction.aggregate(pipeline).next()
         except StopIteration:
@@ -58,11 +62,11 @@ class Fund(mongoengine.Document):
 
         return Decimal(result['balance']).quantize(Decimal('0.01'))
 
-    def get_deficit_from(self, from_time) -> Decimal:
+    def get_deficit_from(self, from_time, ignoring:ObjectId = None) -> Decimal:
         if self.minimum_limit is None:
             return Decimal(0.0)
 
-        difference = self.minimum_limit - self.balance_from(from_time)
+        difference = self.minimum_limit - self.balance_from(from_time, ignoring)
 
         return difference.quantize(Decimal('0.01'))
 

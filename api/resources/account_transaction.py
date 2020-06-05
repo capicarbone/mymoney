@@ -1,5 +1,6 @@
 
 import flask
+from decimal import Decimal
 from flask_restful import Resource, marshal_with, reqparse
 from models.transaction import Transaction
 from api.authentication import auth
@@ -16,13 +17,13 @@ class AccountTransactionResource(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('description', store_missing=False)
         #parser.add_argument('change', type=float, store_missing=False)  # TODO: Add validation, must be different from 0
-        parser.add_argument('account', type=float, store_missing=False)
+        parser.add_argument('account', type=ObjectId, store_missing=False)
         parser.add_argument('category', type=ObjectId, store_missing=False)
         parser.add_argument('time_accomplished', store_missing=False, type=lambda t: dateutil.parser.parse(t))
         entity_args = parser.parse_args()
 
         parser = reqparse.RequestParser()
-        parser.add_argument('change', type=float, store_missing=False)  # TODO: Add validation, must be different from 0
+        parser.add_argument('change', type=Decimal, store_missing=False)  # TODO: Add validation, must be different from 0
         change_arg = parser.parse_args()
 
         if len(entity_args) > 0:
@@ -30,6 +31,7 @@ class AccountTransactionResource(Resource):
 
         if len(change_arg) > 0:
             transaction = Transaction.objects(owner=auth.current_user(), id=transaction_id).get()
+            transaction.adjust_change(change_arg['change'])
 
 
 

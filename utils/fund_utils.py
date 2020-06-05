@@ -4,6 +4,7 @@ from typing import List
 from decimal import Decimal
 from models.fund import Fund
 from models.fund_transaction import FundTransaction
+from bson.objectid import ObjectId
 
 def create_assigments_for_expense(fund: Fund, total_change: Decimal) -> List[FundTransaction] :
 
@@ -12,22 +13,22 @@ def create_assigments_for_expense(fund: Fund, total_change: Decimal) -> List[Fun
 
     return [new_fund_transaction]
 
-def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_time: datetime) -> List[FundTransaction]:
+def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_time: datetime, ignoring: ObjectId = None) -> List[FundTransaction]:
 
     fund_transactions = []
     default_fund: Fund = next((fund for fund in funds if fund.is_default))
     remaining = total_change
     total_adjustment = Decimal(0)
 
-    funds_in_deficit = [fund for fund in funds if fund.get_deficit_from(from_time) > 0]
+    funds_in_deficit = [fund for fund in funds if fund.get_deficit_from(from_time, ignoring) > 0]
 
-    total_deficit = sum([fund.get_deficit_from(from_time) for fund in funds_in_deficit])
+    total_deficit = sum([fund.get_deficit_from(from_time, ignoring) for fund in funds_in_deficit])
 
     # Making assigment on funds with deficit, must be the priority
     for fund in funds_in_deficit:
 
-        fund_balance = fund.balance_from(from_time)
-        fund_deficit = fund.get_deficit_from(from_time)
+        fund_balance = fund.balance_from(from_time, ignoring)
+        fund_deficit = fund.get_deficit_from(from_time, ignoring)
 
         to_assign: Decimal = Decimal(total_change * fund.percentage_assigment)
 
@@ -63,7 +64,7 @@ def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_
         adjustment = total_adjustment / len(funds_for_assignment)
         for fund in funds_for_assignment:
 
-            if fund.maximum_limit is not None and fund.balance >= fund.maximum_limit:
+            if fund.maximum_limit is not None and fund.balance_from(from_time, ignoring) >= fund.maximum_limit:
                 continue
 
             to_assign = (total_change * fund.percentage_assigment) - adjustment
@@ -78,7 +79,7 @@ def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_
             fund_transactions.append(f_transaction)
             remaining = remaining - to_assign
 
-    assert 0 <= remaining < total_change
+    assert 0 <= remaining < total_change #TODO: Only possible if there is at least one fund without limit reached
 
     if remaining > 0:
         to_assign = total_change - sum([ft.change for ft in fund_transactions])
