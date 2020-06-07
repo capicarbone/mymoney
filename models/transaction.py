@@ -29,39 +29,10 @@ class Transaction(Document):
 
     meta = {'allow_inheritance': True}
 
-
-
-
     def adjust_change(self, change):
 
         if self.is_transfer():
             raise mongoengine.ValidationError("Transaction is a transfer.")
-
-        if change > 0 and not self.is_income():
-            raise mongoengine.ValidationError("Change invalid.")
-
-        for account_transaction in self.account_transactions:
-            account_transaction.change = change
-
-        new_fund_transactions : List[FundTransaction] = []
-        if self.is_income():
-
-            funds_to_adjust = [t.fund.fetch() for t in self.fund_transactions]
-
-            new_fund_transactions = fund_utils.create_assignments_for_income(funds_to_adjust, change, self.time_accomplished, self.id)
-
-        else:
-            new_fund_transactions = fund_utils.create_assigments_for_expense(self.fund_transactions[0].fund.get(), change)
-
-        new_account_transaction = self.account_transactions[0]
-        new_account_transaction.change = change
-
-        # TODO: I should add adjustments for funds that are currently above their max limit and those removed fund above 0
-
-        self.update(account_transactions=[new_account_transaction], fund_transactions=new_fund_transactions)
-
-
-
 
     @property
     def total_change(self) -> Decimal:

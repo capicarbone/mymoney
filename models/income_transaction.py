@@ -11,25 +11,43 @@ class IncomeTransaction(Transaction):
 
     def __init__(self, **kwargs):
 
-        if not 'change' in kwargs or not 'account_id' in kwargs:
-            raise mongoengine.ValidationError('Missing fields.')
-
-        change:Decimal = kwargs.pop('change')
-        account_id:str = kwargs.pop('account_id')
-
-        if change <= 0:
-            raise mongoengine.ValidationError("Change must be positive for an income")
+        change:Decimal = kwargs.pop('change') if 'change' in kwargs else None
+        account_id:str = kwargs.pop('account_id') if 'account_id' in kwargs else None
 
         super().__init__(**kwargs)
 
-        account_transaction = AccountTransaction(account=account_id, change=change)
-        self.account_transactions.append(account_transaction)
+        if change and account_id:
+
+            if change <= 0:
+                raise mongoengine.ValidationError("Change must be positive for an income")
+
+
+            account_transaction = AccountTransaction(account=account_id, change=change)
+            self.account_transactions.append(account_transaction)
 
     def __proccess_income(self):
 
         funds = Fund.objects().actives_for(self.owner)
         assignments = fund_utils.create_assignments_for_income(funds, self.total_change, self.time_accomplished)
         self.fund_transactions = assignments
+
+    def adjust_change(self, change):
+
+        super().adjust_change(change)
+
+        if change <= 0:
+            raise mongoengine.ValidationError("Change invalid.")
+
+        funds_to_adjust = [t.fund.fetch() for t in self.fund_transactions]
+
+        new_fund_transactions = fund_utils.create_assignments_for_income(funds_to_adjust, change, self.time_accomplished, self.id)
+
+        new_account_transaction = self.account_transactions[0]
+        new_account_transaction.change = change
+
+        # TODO: I should add adjustments for funds that are currently above their max limit and those removed fund above 0
+
+        self.update(account_transactions=[new_account_transaction], fund_transactions=new_fund_transactions)
 
     @classmethod
     def pre_save_post_validation(cls, sender, document: 'IncomeTransaction', created):
