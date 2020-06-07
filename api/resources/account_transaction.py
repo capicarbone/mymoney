@@ -16,8 +16,7 @@ class AccountTransactionResource(Resource):
     def put(self, account_id, transaction_id):
         parser = reqparse.RequestParser()
         parser.add_argument('description', store_missing=False)
-        #parser.add_argument('change', type=float, store_missing=False)  # TODO: Add validation, must be different from 0
-        parser.add_argument('account', type=ObjectId, store_missing=False)
+        #parser.add_argument('account', type=ObjectId, store_missing=False)
         parser.add_argument('category', type=ObjectId, store_missing=False)
         parser.add_argument('time_accomplished', store_missing=False, type=lambda t: dateutil.parser.parse(t))
         entity_args = parser.parse_args()
@@ -40,4 +39,8 @@ class AccountTransactionResource(Resource):
         return transaction
 
     def delete(self, account_id, transaction_id):
-        pass
+
+        t = Transaction.objects(id=transaction_id, owner=auth.current_user())
+        t.delete()
+
+        return "", 204
