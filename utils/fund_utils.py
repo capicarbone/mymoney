@@ -60,31 +60,30 @@ def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_
                             not next((t for t in fund_transactions if t.fund == fund and not fund.is_default),
                                      None)]
 
-    if remaining > 0:
-        adjustment = total_adjustment / len(funds_for_assignment)
-        for fund in funds_for_assignment:
 
-            if fund.maximum_limit is not None and fund.balance_from(from_time, ignoring) >= fund.maximum_limit:
-                continue
+    adjustment = total_adjustment / len(funds_for_assignment)
+    for fund in funds_for_assignment:
 
-            to_assign = (total_change * fund.percentage_assigment) - adjustment
+        if fund.maximum_limit is not None and fund.balance_from(from_time, ignoring) >= fund.maximum_limit:
+            continue
 
-            if to_assign < 0.009:
-                continue
+        to_assign = (total_change * fund.percentage_assigment) - adjustment
 
-            to_assign = to_assign if to_assign <= remaining else remaining
+        if to_assign < 0.009:
+            to_assign = Decimal(0)
 
-            f_transaction = FundTransaction(change=to_assign,
-                                            fund=fund)
-            fund_transactions.append(f_transaction)
-            remaining = remaining - to_assign
+        to_assign = to_assign if to_assign <= remaining else remaining
+
+        f_transaction = FundTransaction(change=to_assign,
+                                        fund=fund)
+        fund_transactions.append(f_transaction)
+        remaining = remaining - to_assign
 
     assert 0 <= remaining < total_change #TODO: Only possible if there is at least one fund without limit reached
 
-    if remaining > 0:
-        to_assign = total_change - sum([ft.change for ft in fund_transactions])
-        fund_transaction = FundTransaction(change=to_assign,
-                                           fund=default_fund)
-        fund_transactions.append(fund_transaction)
+    to_assign = total_change - sum([ft.change for ft in fund_transactions])
+    fund_transaction = FundTransaction(change=to_assign,
+                                       fund=default_fund)
+    fund_transactions.append(fund_transaction)
 
     return fund_transactions

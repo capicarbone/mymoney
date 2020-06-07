@@ -81,8 +81,7 @@ class Transaction(Document):
         new_fund_transactions : List[FundTransaction] = []
         if self.is_income():
 
-            # TODO: What happens if the current active fund did not exists at the time of the editing transaction?
-            funds_to_adjust = Fund.objects(owner=self.owner, is_active=True)
+            funds_to_adjust = [t.fund.fetch() for t in self.fund_transactions]
 
             new_fund_transactions = fund_utils.create_assignments_for_income(funds_to_adjust, change, self.time_accomplished, self.id)
 
