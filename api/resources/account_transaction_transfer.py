@@ -5,7 +5,7 @@ from flask_restful import Resource, reqparse, marshal_with
 from api.authentication import auth
 import dateutil.parser
 from decimal import Decimal
-from models.transaction import Transaction
+from models.accounts_transfer_transaction import AccountsTransferTransaction
 
 from api.resources.account_transaction_list import transaction_fields
 
@@ -21,9 +21,10 @@ class AccountTransactionTransfer(Resource):
         parser.add_argument('time_accomplished', type=lambda t: dateutil.parser.parse(t))
         args = parser.parse_args()
 
-        transaction = Transaction.create_account_transfer(auth.current_user(), account_id, args['to'], args['amount'],
-                                                          description=args['description'],
-                                                          time_accomplished=args['time_accomplished'])
+        transaction = AccountsTransferTransaction(owner=auth.current_user(), from_account_id=account_id, to_account_id=args['to'],
+                                                 amount=args['amount'],
+                                                 description=args['description'],
+                                                 time_accomplished=args['time_accomplished'])
         transaction.save()
 
         return transaction

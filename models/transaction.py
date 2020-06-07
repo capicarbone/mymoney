@@ -30,18 +30,7 @@ class Transaction(Document):
     meta = {'allow_inheritance': True}
 
 
-    @classmethod
-    def create_account_transfer(cls, owner:User, from_account_id:str, to_account_id:str, amount:Decimal, description:str, time_accomplished:datetime ):
-        if amount == 0:
-            raise mongoengine.ValidationError("Amount must be different than zero")
 
-        new_transaction = Transaction(owner=owner, description=description, time_accomplished=time_accomplished)
-        from_account_transaction = AccountTransaction(account=from_account_id, change=-amount)
-        to_account_transaction = AccountTransaction(account=to_account_id, change=amount)
-        new_transaction.account_transactions.append(from_account_transaction)
-        new_transaction.account_transactions.append(to_account_transaction)
-
-        return new_transaction
 
     def adjust_change(self, change):
 
