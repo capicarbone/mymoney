@@ -4,6 +4,8 @@ from mongoengine import ValidationError
 import flask
 from flask_restful import fields, Resource, reqparse, marshal_with
 from models.transaction import Transaction
+from models.income_transaction import IncomeTransaction
+from models.expense_transaction import ExpenseTransaction
 from api.authentication import auth
 import dateutil.parser
 
@@ -45,19 +47,20 @@ class AccountTransactionListResource(Resource):
 
 
         if args['change'] > 0:
-            transaction = Transaction.create_income(account_id,
-                                                    args['change'],
-                                                    args['description'],
-                                                    args['time_accomplished'],
-                                                    auth.current_user())
+
+            transaction = IncomeTransaction(account_id=account_id,
+                                                    change=args['change'],
+                                                    description=args['description'],
+                                                    time_accomplished=args['time_accomplished'],
+                                                    owner=auth.current_user())
 
         if args['change'] < 0:
-            transaction = Transaction.create_expense(account_id,
-                                                    args['change'],
-                                                    args['description'],
-                                                    args['time_accomplished'],
-                                                    args['category'],
-                                                    auth.current_user())
+            transaction = ExpenseTransaction(account_id=account_id,
+                                            change=args['change'],
+                                            description=args['description'],
+                                            category=args['category'],
+                                            time_accomplished=args['time_accomplished'],
+                                            owner=auth.current_user())
 
         try:
             transaction.save()
