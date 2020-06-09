@@ -9,6 +9,7 @@ from models.accounts_transfer_transaction import AccountsTransferTransaction
 
 from api.resources.account_transaction_list import transaction_fields
 
+# TODO: Rename to AccountTransfer
 class AccountTransactionTransfer(Resource):
     method_decorators = [auth.login_required]
 

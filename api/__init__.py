@@ -7,6 +7,7 @@ from api.resources.account_transaction_list import AccountTransactionListResourc
 from api.resources.account_transaction_transfer import AccountTransactionTransfer
 from api.resources.account_transaction import AccountTransactionResource
 from api.resources.fund_list import FundListResource
+from api.resources.fund_transfer import FundTransferResource
 
 from .authentication import auth
 
@@ -20,7 +21,8 @@ resources = (
     ('/accounts', AccountListResource),
     ('/account/<string:account_id>/transactions', AccountTransactionListResource),
     ('/account/<string:account_id>/transaction/<string:transaction_id>', AccountTransactionResource),
-    ('/account/<string:account_id>/transactions/transfer', AccountTransactionTransfer)
+    ('/account/<string:account_id>/transfer', AccountTransactionTransfer),
+    ('/fund/<string:fund_id>/transfer', FundTransferResource)
 )
 
 for resource in resources:

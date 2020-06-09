@@ -23,7 +23,7 @@ class FundListResource(Resource):
 
     @marshal_with(fund_fields)
     def get(self):
-        funds = Fund.objects(owner=auth.current_user())
+        funds = Fund.objects(owner=auth.current_user(), is_active=True)
         return list(funds)
 
     @marshal_with(fund_fields)
