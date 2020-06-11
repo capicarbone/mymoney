@@ -30,13 +30,14 @@ transaction_fields = {
 
 
 
-class AccountTransactionListResource(Resource):
+class TransactionListResource(Resource):
     method_decorators = [auth.login_required]
 
     @marshal_with(transaction_fields)
-    def post(self, account_id: str):
+    def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('description')
+        parser.add_argument('account_id', type=str, required=True)
         parser.add_argument('change', type=float, required=True) # TODO: Add validation, must be different from 0
         parser.add_argument('category')
         parser.add_argument('time_accomplished', type=lambda t: dateutil.parser.parse(t))
@@ -48,14 +49,14 @@ class AccountTransactionListResource(Resource):
 
         if args['change'] > 0:
 
-            transaction = IncomeTransaction(account_id=account_id,
+            transaction = IncomeTransaction(account_id=args['account_id'],
                                                     change=args['change'],
                                                     description=args['description'],
                                                     time_accomplished=args['time_accomplished'],
                                                     owner=auth.current_user())
 
         if args['change'] < 0:
-            transaction = ExpenseTransaction(account_id=account_id,
+            transaction = ExpenseTransaction(account_id=args['account_id'],
                                             change=args['change'],
                                             description=args['description'],
                                             category=args['category'],
@@ -72,10 +73,16 @@ class AccountTransactionListResource(Resource):
 
 
     @marshal_with(transaction_fields)
-    def get(self, account_id:str):
+    def get(self):
         parser = reqparse.RequestParser()
+        parser.add_argument('account_id', type=str)
         parser.add_argument('page', type=int, default=1)
         parser.add_argument('page_size', type=int, default=30)
         args = parser.parse_args()
 
-        return Transaction.objects(account_transactions__account=account_id).paginate(page=args['page'], per_page=args['page_size']).items
+        match = {}
+
+        if 'account_id' in args:
+            match['account_transactions__account'] = args['account_id']
+
+        return Transaction.objects(**match).paginate(page=args['page'], per_page=args['page_size']).items

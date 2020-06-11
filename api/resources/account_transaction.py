@@ -4,7 +4,7 @@ from decimal import Decimal
 from flask_restful import Resource, marshal_with, reqparse
 from models.transaction import Transaction
 from api.authentication import auth
-from api.resources.account_transaction_list import transaction_fields
+from api.resources.transaction_list import transaction_fields
 import dateutil.parser
 from bson.objectid import ObjectId
 
