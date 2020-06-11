@@ -8,12 +8,12 @@ from api.resources.transaction_list import transaction_fields
 import dateutil.parser
 from bson.objectid import ObjectId
 
-class AccountTransactionResource(Resource):
+class TransactionResource(Resource):
 
     method_decorators = [auth.login_required]
 
     @marshal_with(transaction_fields)
-    def put(self, account_id, transaction_id):
+    def put(self, transaction_id):
         parser = reqparse.RequestParser()
         parser.add_argument('description', store_missing=False)
         #parser.add_argument('account', type=ObjectId, store_missing=False)

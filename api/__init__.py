@@ -5,7 +5,7 @@ from api.resources.category_list import CategoriesList
 from api.resources.subcategory_list import SubcategoriesList
 from api.resources.transaction_list import TransactionListResource
 from api.resources.account_transaction_transfer import AccountTransactionTransfer
-from api.resources.account_transaction import AccountTransactionResource
+from api.resources.transaction import TransactionResource
 from api.resources.fund_list import FundListResource
 from api.resources.fund_transfer import FundTransferResource
 
@@ -20,9 +20,9 @@ resources = (
     ('/funds/<string:fund_id>/categories', CategoriesList),
     ('/accounts', AccountListResource),
     ('/transactions', TransactionListResource),
-    ('/account/<string:account_id>/transaction/<string:transaction_id>', AccountTransactionResource),
-    ('/account/<string:account_id>/transfer', AccountTransactionTransfer),
-    ('/fund/<string:fund_id>/transfer', FundTransferResource)
+    ('/transaction/<string:transaction_id>', TransactionResource),
+    ('/transaction/account-transfer', AccountTransactionTransfer),
+    ('/transaction/fund-transfer', FundTransferResource)
 )
 
 for resource in resources:
