@@ -75,14 +75,18 @@ class TransactionListResource(Resource):
     @marshal_with(transaction_fields)
     def get(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('account_id', type=str)
+        parser.add_argument('account_id', type=str, store_missing=False)
+        parser.add_argument('fund_id', type=str, store_missing=False)
         parser.add_argument('page', type=int, default=1)
         parser.add_argument('page_size', type=int, default=30)
         args = parser.parse_args()
 
-        match = {}
+        match = {'owner': auth.current_user()}
 
         if 'account_id' in args:
             match['account_transactions__account'] = args['account_id']
+
+        if 'fund_id' in args:
+            match['fund_transactions__fund'] = args['fund_id']
 
         return Transaction.objects(**match).paginate(page=args['page'], per_page=args['page_size']).items
