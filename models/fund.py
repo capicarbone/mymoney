@@ -28,8 +28,9 @@ class Fund(mongoengine.Document):
     meta = {'queryset_class': FundQuerySet}
 
     def clean(self):
+        super().clean()
 
-        total_assigment = Fund.objects(owner=self.owner).sum('percentage_assigment')
+        total_assigment = Decimal(Fund.objects(owner=self.owner).sum('percentage_assigment'))
 
         if total_assigment + self.percentage_assigment > 1:
             raise mongoengine.ValidationError('Invalid percetange assigment')

@@ -1,0 +1,5 @@
+[
+  {"_id":{"$oid":"5ec7411b8741c3f6e1f07cea"},"name":"user1","email":"cpinelly@gmail.com","password_hash":"pbkdf2:sha256:150000$3AC7SRwD$345e88d6939deef702a44e7d67baaa552da21a787c6d0ec5e02475eab9fc5595","auth_token":"4427db92-e12f-4dbd-a8d2-46bb3ad85afe","created_at":{"$date":{"$numberLong":"1590098635204"}}},
+  {"_id":{"$oid":"5ecc1ec62c2a139c8bf279fe"},"name":"user2","email":"cpinelly233@gmail2.com","password_hash":"pbkdf2:sha256:150000$k245maSm$5f9f2620badc908147d72a4b1871e4cc8526937c0aa133a2f29e970d55aff0e1","auth_token":"f52860af-af1b-4c99-b500-305853193ca3","created_at":{"$date":{"$numberLong":"1590417526776"}}},
+  {"_id":{"$oid":"5ee24ef16c8e3ad070cbf919"},"name":"user3","email":"cpinelly2@gmail.com","password_hash":"pbkdf2:sha256:150000$pLJS1MAN$dbebec17f4f968fd642cbfed4cd25166befb395c466fe0dc5bbc99a692990875","auth_token":"ee418d6e-60bf-49e8-bbd1-0253a36b2b23","created_at":{"$date":{"$numberLong":"1591871649331"}}}
+]

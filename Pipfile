@@ -14,6 +14,9 @@ flask-httpauth = "*"
 python-dateutil = "*"
 gunicorn = "*"
 blinker = "*"
+pytest = "*"
+mongomock = "*"
+pytest-mongodb = "*"
 
 [requires]
 python_version = "3.6"
