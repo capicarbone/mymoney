@@ -4,6 +4,7 @@ from models.user import User
 import mongoengine
 import pytest
 from decimal import Decimal
+from datetime import datetime
 
 @pytest.fixture(scope="module")
 def db():
@@ -46,7 +47,18 @@ def test_valid_insert(db, mongodb):
 
 def test_fund_balance(db, mongodb):
     fund = Fund.objects(id="5ec741e6192cf1720a170378").get()
-    assert fund.balance == Decimal(1333.34).quantize(Decimal('1.00'))
+    assert fund.balance == Decimal(1233.34).quantize(Decimal('1.00'))
 
+def test_fund_balance_from(db, mongodb):
+    fund = Fund.objects(id="5ec741e6192cf1720a170378").get()
+    assert fund.balance_from(datetime(2020, 2, 1)) == Decimal(666.67).quantize(Decimal('1.00'))
+
+def test_fund_deficit(db, mongodb):
+    fund = Fund.objects(id="5ec741e6192cf1720a170378").get()
+    assert fund.get_deficit() == Decimal(3766.66).quantize(Decimal('1.00'))
+
+def test_fund_deficit_from(db, mongodb):
+    fund = Fund.objects(id="5ec741e6192cf1720a170378").get()
+    assert fund.get_deficit_from(datetime(2020, 2, 1)) == Decimal(4333.33).quantize(Decimal('1.00'))
 
 
