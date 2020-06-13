@@ -3,6 +3,7 @@ from models.fund import Fund
 from models.user import User
 import mongoengine
 import pytest
+from decimal import Decimal
 
 @pytest.fixture(scope="module")
 def db():
@@ -12,9 +13,6 @@ def db():
 @pytest.fixture()
 def user():
     return User.objects.first()
-
-def inc(x):
-    return x + 1
 
 def test_inser_with_invalid_percentage_assigment(db, mongodb, user):
     attr = {'name': 'Test Fund','percentage_assigment': -1, 'owner': user }
@@ -45,6 +43,10 @@ def test_valid_insert(db, mongodb):
     f = Fund(**attr)
     f.save()
     assert Fund.objects(name=attr["name"]).get() is not None
+
+def test_fund_balance(db, mongodb):
+    fund = Fund.objects(id="5ec741e6192cf1720a170378").get()
+    assert fund.balance == Decimal(1333.34).quantize(Decimal('1.00'))
 
 
 

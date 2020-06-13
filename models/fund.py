@@ -56,6 +56,7 @@ class Fund(mongoengine.Document):
         if ignoring:
             pipeline[1]['$match']['id__ne'] = ignoring # TODO: IT should be improved for not depends of number index
 
+
         try:
             result = db.transaction.aggregate(pipeline).next()
         except StopIteration:
