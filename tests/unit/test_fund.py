@@ -5,15 +5,8 @@ import mongoengine
 import pytest
 from decimal import Decimal
 from datetime import datetime
+from .fixtures import *
 
-@pytest.fixture(scope="module")
-def db():
-    mongoengine.connect('mymoney_test')
-    return mongoengine.get_connection()
-
-@pytest.fixture()
-def user():
-    return User.objects.first()
 
 def test_inser_with_invalid_percentage_assigment(db, mongodb, user):
     attr = {'name': 'Test Fund','percentage_assigment': -1, 'owner': user }
