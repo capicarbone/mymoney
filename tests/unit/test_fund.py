@@ -1,8 +1,5 @@
 
 from models.fund import Fund
-from models.user import User
-import mongoengine
-import pytest
 from decimal import Decimal
 from datetime import datetime
 from .fixtures import *
