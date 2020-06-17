@@ -1,5 +1,7 @@
 
 from .fixtures import *
+import pytest
+import mongoengine
 from decimal import Decimal
 from models.expense_transaction import ExpenseTransaction
 from models.account import Account
@@ -9,7 +11,7 @@ import datetime
 def test_valid_creation_for_expense_transaction(db, mongodb, user):
     account = Account.objects(owner=user)[0]
     fund = Fund.objects(is_default=False)[0]
-    change = 322.01
+    change = -322.01
 
     expense = ExpenseTransaction(account_id=account.id, change=change, time_accomplished=datetime.datetime.now(),
                                  category=fund.categories[0],
@@ -20,5 +22,21 @@ def test_valid_creation_for_expense_transaction(db, mongodb, user):
     assert len(expense.fund_transactions) == 1
     assert expense.account_transactions[0].change == expense.fund_transactions[0].change
     assert expense.fund_transactions[0].change == Decimal(change).quantize(Decimal('1.00'))
+
+@pytest.mark.parametrize( ('attrs'), [
+    {'change': 300, 'time_accomplished': datetime.datetime.now()},
+    {'change': -300, 'time_accomplished': datetime.datetime.now(), 'category': None},
+    {'change': -300, 'time_accomplished': datetime.datetime.now(), 'account_id': None}
+])
+def test_invalid_creation_for_expense_transaction(db, mongodb, user, attrs):
+    attrs['owner'] = user
+    attrs['account_id'] = Account.objects(owner=user)[0].id if 'account_id' not in attrs else None
+    attrs['category'] = Fund.objects(is_default=False)[0].categories[0] if 'category' not in attrs else None
+
+    expense = ExpenseTransaction(**attrs)
+
+    with pytest.raises(mongoengine.ValidationError):
+        expense.save()
+
 
 

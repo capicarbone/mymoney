@@ -22,9 +22,18 @@ class ExpenseTransaction(Transaction):
             account_transaction = AccountTransaction(account=account_id, change=change)
             self.account_transactions.append(account_transaction)
 
+
+
     def clean(self):
+
         if not self.category:
             raise mongoengine.ValidationError("Expense transaction needs an expense category")
+
+        if len(self.account_transactions) == 0:
+            raise mongoengine.ValidationError('Change or account id missing')
+
+        if self.account_transactions[0].change >= 0:
+            raise mongoengine.ValidationError("Change must be negative")
 
     def __process_expense(self):
 
