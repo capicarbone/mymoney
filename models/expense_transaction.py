@@ -22,6 +22,10 @@ class ExpenseTransaction(Transaction):
             account_transaction = AccountTransaction(account=account_id, change=change)
             self.account_transactions.append(account_transaction)
 
+    def clean(self):
+        if not self.category:
+            raise mongoengine.ValidationError("Expense transaction needs an expense category")
+
     def __process_expense(self):
 
         fund = Fund.objects(categories=self.category).get()

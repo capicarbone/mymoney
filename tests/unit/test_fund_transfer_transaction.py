@@ -10,7 +10,7 @@ def test_fund_transfer_transaction_valid_creation(db, mongodb,user):
     from_fund = funds[0]
     amount = 300
 
-    transfer = FundTransferTransaction(amount=amount, to_fund_id=to_fund.id, from_fund_id=from_fund, time_accomplished=datetime.now())
+    transfer = FundTransferTransaction(owner=user, amount=amount, to_fund_id=to_fund.id, from_fund_id=from_fund, time_accomplished=datetime.now())
     transfer.save()
 
     assert len(transfer.fund_transactions) == 2

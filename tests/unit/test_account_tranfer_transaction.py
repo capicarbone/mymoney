@@ -11,7 +11,7 @@ def test_account_transfer_transaction_valid_creation(db, mongodb,user):
     to_account = accounts[1]
     amount = 200
 
-    t = AccountsTransferTransaction(amount=amount, to_account_id=to_account.id, from_account_id=from_account.id,
+    t = AccountsTransferTransaction(owner=user, amount=amount, to_account_id=to_account.id, from_account_id=from_account.id,
                                     time_accomplished=datetime.now())
     t.save()
 

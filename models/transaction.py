@@ -20,7 +20,7 @@ def validate_change(value: float):
 
 
 class Transaction(Document):
-    owner = mongoengine.LazyReferenceField(User)
+    owner = mongoengine.LazyReferenceField(User, required=True)
     description = mongoengine.StringField(max_length=50)
     time_accomplished = mongoengine.DateTimeField(required=True)
     created_at = mongoengine.DateTimeField(default=lambda: datetime.datetime.now())
