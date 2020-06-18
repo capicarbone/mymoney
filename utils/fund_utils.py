@@ -57,7 +57,7 @@ def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_
 
     # Taking funds that does not have assigment yet
     funds_for_assignment = [fund for fund in funds if
-                            not next((t for t in fund_transactions if t.fund == fund and not fund.is_default),
+                            not next((t for t in fund_transactions if t.fund == fund or fund.is_default),
                                      None)]
 
 
