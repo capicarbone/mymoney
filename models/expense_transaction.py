@@ -37,7 +37,7 @@ class ExpenseTransaction(Transaction):
 
     def __process_expense(self):
 
-        fund = Fund.objects(categories=self.category).get()
+        fund = Fund.objects(categories=self.category, owner=self.owner).get()
 
         assignments = fund_utils.create_assigments_for_expense(fund, self.total_change)
         self.fund_transactions = assignments
