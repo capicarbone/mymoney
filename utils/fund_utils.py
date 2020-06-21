@@ -67,7 +67,7 @@ def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_
         if fund.maximum_limit is not None and fund.balance_from(from_time, ignoring) >= fund.maximum_limit:
             continue
 
-        to_assign = (total_change * fund.percentage_assigment) - adjustment
+        to_assign = (remaining * fund.percentage_assigment) - adjustment
 
         if to_assign < 0.009:
             to_assign = Decimal(0)
