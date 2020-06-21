@@ -46,6 +46,9 @@ def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_
 
         to_assign = to_assign if to_assign <= remaining else remaining
 
+
+
+
         fund_transaction = FundTransaction(change=to_assign,
                                            fund=fund)
 
@@ -53,6 +56,7 @@ def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_
 
         remaining = remaining - to_assign
 
+    remaining = remaining.quantize(Decimal("1.00"))
     assert 0 <= remaining <= total_change
 
     # Taking funds that does not have assigment yet
