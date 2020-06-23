@@ -4,6 +4,8 @@ import pytest
 from decimal import Decimal
 from utils import fund_utils
 from models.fund import Fund
+from models.account import Account
+from models.income_transaction import IncomeTransaction
 import datetime
 
 def test_fund_assignments_for_expense(db, mongodb, user):
@@ -78,7 +80,7 @@ def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_not_eno
     # The number of assigned fund is equals to the funds with minimum_limit
     funds_assigned = [transaction for transaction in transactions if transaction.change > 0]
     funds_in_deficit = [fund for fund in funds if fund.minimum_limit is not None]
-    assert len(funds_assigned) == len(funds_in_deficit) or len(expected_assignments)
+    assert len(funds_assigned) == len(expected_assignments)
 
     for assignment in funds_assigned:
         fund = assignment.fund.fetch()
@@ -86,5 +88,34 @@ def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_not_eno
 
     assert sum([t.change for t in funds_assigned]) == Decimal(change).quantize(Decimal("1.00"))
 
+@pytest.mark.parametrize(('change', 'expected_assignments'), [
+    (8000, {
+        "Home": Decimal(2666.67).quantize(Decimal("1.00")),
+        "Family": Decimal(2000).quantize(Decimal("1.00")),
+        "Health": Decimal(2666.67).quantize(Decimal("1.00")),
+        'Unassigned': Decimal(666.66).quantize(Decimal("1.00"))
+    }),
 
+])
+def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_grather_than_total_deficit(db, mongodb, change, expected_assignments):
+
+    owner_id="5ee24ef16c8e3ad070cbf919"
+    account = Account.objects(owner=owner_id, name="Banco").get()
+    income = IncomeTransaction(owner=owner_id, account_id=account, change=7000, time_accomplished=datetime.datetime.now())
+    income.save()
+
+    funds = Fund.objects(owner=owner_id)
+    change = Decimal(change)
+
+    transactions = fund_utils.create_assignments_for_income(funds, change, datetime.datetime.now())
+    #import pdb; pdb.set_trace()
+    funds_assigned = [transaction for transaction in transactions if transaction.change > 0]
+
+    assert len(funds_assigned) == len(expected_assignments)
+
+    for assignment in funds_assigned:
+        fund = assignment.fund.fetch()
+        assert assignment.change == expected_assignments[fund.name], "Fund {} with not expected assignment".format(fund.name)
+
+    assert sum([t.change for t in funds_assigned]) == Decimal(change).quantize(Decimal("1.00"))
 

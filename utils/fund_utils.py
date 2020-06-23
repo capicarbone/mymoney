@@ -24,6 +24,7 @@ def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_
 
     total_deficit = sum([fund.get_deficit_from(from_time, ignoring) for fund in funds_in_deficit])
 
+
     # Making assigment on funds with deficit, must be the priority
     for fund in funds_in_deficit:
 
@@ -34,6 +35,7 @@ def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_
 
         if total_deficit > total_change:
             to_assign = (total_change / len(funds_in_deficit)).quantize(Decimal('1.00'))
+            total_adjustment = total_change
         else:
             if to_assign < fund_deficit:
                 adjustment = fund_deficit - to_assign
@@ -64,14 +66,13 @@ def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_
                             not next((t for t in fund_transactions if t.fund == fund or fund.is_default),
                                      None)]
 
-
     adjustment = total_adjustment / len(funds_for_assignment)
     for fund in funds_for_assignment:
 
         if fund.maximum_limit is not None and fund.balance_from(from_time, ignoring) >= fund.maximum_limit:
             continue
 
-        to_assign = (remaining * fund.percentage_assigment) - adjustment
+        to_assign = (total_change * fund.percentage_assigment) - adjustment
 
         if to_assign < 0.009:
             to_assign = Decimal(0)
