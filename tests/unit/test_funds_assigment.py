@@ -8,6 +8,10 @@ from models.account import Account
 from models.income_transaction import IncomeTransaction
 import datetime
 
+@pytest.fixture()
+def owner_id():
+    return "5ee24ef16c8e3ad070cbf919"
+
 def test_fund_assignments_for_expense(db, mongodb, user):
 
     fund = Fund.objects(owner=user, is_default=False)[0]
@@ -62,7 +66,7 @@ def test_fund_assignments_for_expense(db, mongodb, user):
         'Unassigned': Decimal(0.01).quantize(Decimal("1.00"))
     })
 ])
-def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_not_enough_for_total_deficit(db, mongodb, change, expected_assignments):
+def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_not_enough_for_total_deficit(db, mongodb, owner_id, change, expected_assignments):
     """
     The test is rand with a user witout any transaction and funds on deficit.
     :param db:
@@ -70,7 +74,7 @@ def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_not_eno
     :return:
     """
 
-    funds = Fund.objects(owner="5ee24ef16c8e3ad070cbf919")
+    funds = Fund.objects(owner=owner_id)
     change = Decimal(change)
 
     transactions = fund_utils.create_assignments_for_income(funds, change, datetime.datetime.now())
@@ -105,9 +109,8 @@ def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_not_eno
     }),
 
 ])
-def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_grather_than_total_deficit(db, mongodb, change, expected_assignments):
+def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_grather_than_total_deficit(db, mongodb, owner_id, change, expected_assignments):
 
-    owner_id="5ee24ef16c8e3ad070cbf919"
     account = Account.objects(owner=owner_id, name="Banco").get()
     income = IncomeTransaction(owner=owner_id, account_id=account, change=7000, time_accomplished=datetime.datetime.now())
     income.save()
