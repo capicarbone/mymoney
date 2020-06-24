@@ -66,7 +66,8 @@ def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_
                             not next((t for t in fund_transactions if t.fund == fund or fund.is_default),
                                      None)]
 
-    adjustment = total_adjustment / len(funds_for_assignment)
+    # The adjustment will be distributed between the other funds without deficit and the default one
+    adjustment = total_adjustment / (len(funds_for_assignment) + 1)
     for fund in funds_for_assignment:
 
         if fund.maximum_limit is not None and fund.balance_from(from_time, ignoring) >= fund.maximum_limit:

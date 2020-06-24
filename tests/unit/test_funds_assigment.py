@@ -95,6 +95,14 @@ def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_not_eno
         "Health": Decimal(2666.67).quantize(Decimal("1.00")),
         'Unassigned': Decimal(666.66).quantize(Decimal("1.00"))
     }),
+    (12000, {
+        "Home": Decimal(3000).quantize(Decimal("1.00")),
+        "Family": Decimal(3000).quantize(Decimal("1.00")),
+        "Health": Decimal(2666.67).quantize(Decimal("1.00")),
+        "Travel": Decimal(711.11).quantize(Decimal("1.00")),
+        "Education": Decimal(711.11).quantize(Decimal("1.00")),
+        'Unassigned': Decimal(1911.11).quantize(Decimal("1.00"))
+    }),
 
 ])
 def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_grather_than_total_deficit(db, mongodb, change, expected_assignments):
@@ -108,7 +116,7 @@ def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_grather
     change = Decimal(change)
 
     transactions = fund_utils.create_assignments_for_income(funds, change, datetime.datetime.now())
-    #import pdb; pdb.set_trace()
+
     funds_assigned = [transaction for transaction in transactions if transaction.change > 0]
 
     assert len(funds_assigned) == len(expected_assignments)
