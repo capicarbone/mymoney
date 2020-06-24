@@ -48,9 +48,6 @@ def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_
 
         to_assign = to_assign if to_assign <= remaining else remaining
 
-
-
-
         fund_transaction = FundTransaction(change=to_assign,
                                            fund=fund)
 
@@ -63,17 +60,23 @@ def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_
 
     # Taking funds that does not have assigment yet
     funds_for_assignment = [fund for fund in funds if
-                            not next((t for t in fund_transactions if t.fund == fund or fund.is_default),
-                                     None)]
+                            not next((t for t in fund_transactions if t.fund == fund),
+                                     None) and not fund.is_default]
+
 
     # The adjustment will be distributed between the other funds without deficit and the default one
     adjustment = total_adjustment / (len(funds_for_assignment) + 1)
     for fund in funds_for_assignment:
 
+        fund_balance = fund.balance_from(from_time, ignoring)
+
         if fund.maximum_limit is not None and fund.balance_from(from_time, ignoring) >= fund.maximum_limit:
             continue
 
         to_assign = (total_change * fund.percentage_assigment) - adjustment
+
+        if fund.maximum_limit and to_assign + fund_balance > fund.maximum_limit:
+            to_assign = to_assign - ((to_assign + fund_balance) - fund.maximum_limit)
 
         if to_assign < 0.009:
             to_assign = Decimal(0)

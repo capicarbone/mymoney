@@ -84,6 +84,8 @@ def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_not_eno
     # The number of assigned fund is equals to the funds with minimum_limit
     funds_assigned = [transaction for transaction in transactions if transaction.change > 0]
     funds_in_deficit = [fund for fund in funds if fund.minimum_limit is not None]
+
+    assert len(transactions) == len(funds)
     assert len(funds_assigned) == len(expected_assignments)
 
     for assignment in funds_assigned:
@@ -93,6 +95,7 @@ def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_not_eno
     assert sum([t.change for t in funds_assigned]) == Decimal(change).quantize(Decimal("1.00"))
 
 @pytest.mark.parametrize(('change', 'expected_assignments'), [
+    # The remaining after the assignment to fund on deficit not will be enough for the rest of funds.
     (8000, {
         "Home": Decimal(2666.67).quantize(Decimal("1.00")),
         "Family": Decimal(2000).quantize(Decimal("1.00")),
@@ -122,6 +125,7 @@ def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_grather
 
     funds_assigned = [transaction for transaction in transactions if transaction.change > 0]
 
+    assert len(transactions) == len(funds)
     assert len(funds_assigned) == len(expected_assignments)
 
     for assignment in funds_assigned:
@@ -130,3 +134,42 @@ def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_grather
 
     assert sum([t.change for t in funds_assigned]) == Decimal(change).quantize(Decimal("1.00"))
 
+@pytest.mark.parametrize(('change', 'expected_assignments'), [
+    (8000, {
+        "Home": Decimal(2000).quantize(Decimal("1.00")),
+        "Family": Decimal(2000).quantize(Decimal("1.00")),
+        "Health": Decimal(800).quantize(Decimal("1.00")),
+        "Travel": Decimal(800).quantize(Decimal("1.00")),
+        "Education": Decimal(800).quantize(Decimal("1.00")),
+        'Unassigned': Decimal(1600).quantize(Decimal("1.00"))
+    }),
+    # One fund will reach the maximum and the surplus will be assigned to the default fund.
+    (50000, {
+        "Home": Decimal(5000).quantize(Decimal("1.00")),
+        "Family": Decimal(12500).quantize(Decimal("1.00")),
+        "Health": Decimal(5000).quantize(Decimal("1.00")),
+        "Travel": Decimal(5000).quantize(Decimal("1.00")),
+        "Education": Decimal(5000).quantize(Decimal("1.00")),
+        'Unassigned': Decimal(17500).quantize(Decimal("1.00"))
+    })
+])
+def test_fund_assignments_for_income_with_any_fund_without_deficit(db, mongodb, owner_id, change, expected_assignments):
+    account = Account.objects(owner=owner_id, name="Banco").get()
+    income = IncomeTransaction(owner=owner_id, account_id=account, change=14000, time_accomplished=datetime.datetime.now())
+    income.save()
+
+    funds = Fund.objects(owner=owner_id)
+    change = Decimal(change)
+
+    transactions = fund_utils.create_assignments_for_income(funds, change, datetime.datetime.now())
+
+    funds_assigned = [transaction for transaction in transactions if transaction.change > 0]
+
+    assert len(transactions) == len(funds)
+    assert len(funds_assigned) == len(expected_assignments)
+
+    for assignment in funds_assigned:
+        fund = assignment.fund.fetch()
+        assert assignment.change == expected_assignments[fund.name], "Fund {} with not expected assignment".format(fund.name)
+
+    assert sum([t.change for t in funds_assigned]) == Decimal(change).quantize(Decimal("1.00"))
