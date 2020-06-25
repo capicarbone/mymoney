@@ -4,6 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pytest = "*"
 
 [packages]
 flask = "*"
@@ -14,7 +15,6 @@ flask-httpauth = "*"
 python-dateutil = "*"
 gunicorn = "*"
 blinker = "*"
-pytest = "*"
 mongomock = "*"
 pytest-mongodb = "*"
 
