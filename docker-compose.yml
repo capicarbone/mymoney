@@ -8,3 +8,27 @@ services:
             - 8000:5000
         volumes:
             - ./:/app/app/
+        environment:
+            - MONGODB_URI=mongodb://root:verysecret@mymoney_db/mymoney
+    mongo:
+        image: mongo
+        ports:
+            - 27117:27017
+        volumes:
+            - mymoney_db_data:/data/db
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: verysecret
+            MONGO_INITDB_DATABASE: mymoney
+
+    mongo-express:
+        image: mongo-express
+        ports:
+            - 8081:8081
+        environment:
+            #ME_CONFIG_MONGODB_AUTH_DATABASE: mymoney
+            ME_CONFIG_MONGODB_ADMINUSERNAME: root
+            ME_CONFIG_MONGODB_ADMINPASSWORD: verysecret
+
+volumes:
+    mymoney_db_data:
