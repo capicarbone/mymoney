@@ -23,6 +23,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 5. add your own code
 # <--- own code here
 
-COPY . /app/app
+#COPY . /app/app
 
-CMD gunicorn wsgi:app --bind 0.0.0.0:8000
+ENV FLASK_ENV=development
+CMD flask run --host=0.0.0.0
