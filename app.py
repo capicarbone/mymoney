@@ -12,6 +12,7 @@ from models.user import User
 #decimal.getcontext().prec = 2
 app = Flask(__name__, instance_relative_config=True)
 
+print(os.environ.get('MONGODB_URI', 'mongodb://localhost/mymoney'))
 app.config['MONGODB_SETTINGS'] = {
     'host': os.environ.get('MONGODB_URI', 'mongodb://localhost/mymoney'),
     'retryWrites': False
