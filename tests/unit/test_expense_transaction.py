@@ -13,7 +13,7 @@ def test_valid_creation_for_expense_transaction(db, mongodb, user):
     fund = Fund.objects(is_default=False)[0]
     change = -322.01
 
-    expense = ExpenseTransaction(account_id=account.id, change=change, time_accomplished=datetime.datetime.now(),
+    expense = ExpenseTransaction(account_id=account.id, change=change, date_accomplished=datetime.date.today(),
                                  category=fund.categories[0],
                                  owner=user)
     expense.save()
@@ -24,9 +24,9 @@ def test_valid_creation_for_expense_transaction(db, mongodb, user):
     assert expense.fund_transactions[0].change == Decimal(change).quantize(Decimal('1.00'))
 
 @pytest.mark.parametrize( ('attrs'), [
-    {'change': 300, 'time_accomplished': datetime.datetime.now()},
-    {'change': -300, 'time_accomplished': datetime.datetime.now(), 'category': None},
-    {'change': -300, 'time_accomplished': datetime.datetime.now(), 'account_id': None}
+    {'change': 300, 'date_accomplished': datetime.datetime.now()},
+    {'change': -300, 'date_accomplished': datetime.datetime.now(), 'category': None},
+    {'change': -300, 'date_accomplished': datetime.datetime.now(), 'account_id': None}
 ])
 def test_invalid_creation_for_expense_transaction(db, mongodb, user, attrs):
     attrs['owner'] = user

@@ -23,7 +23,7 @@ class FundTransferResource(Resource):
 
         transaction = FundTransferTransaction(owner=auth.current_user(), from_fund_id=args['from'], to_fund_id=args['to'],
                                                  amount=args['amount'],
-                                                 time_accomplished=datetime.datetime.now())
+                                                 date_accomplished=datetime.datetime.now())
         transaction.save()
 
         return transaction

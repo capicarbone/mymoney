@@ -13,7 +13,7 @@ def test_valid_creation_for_income_transaction(db, mongodb, user, change):
     account = Account.objects(owner=user)[0]
 
     income = IncomeTransaction(owner=user, account_id=account.id, change=change,
-                               time_accomplished=datetime.datetime.now())
+                               date_accomplished=datetime.date.today())
 
     income.save()
 

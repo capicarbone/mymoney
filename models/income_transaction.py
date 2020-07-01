@@ -28,7 +28,7 @@ class IncomeTransaction(Transaction):
     def __proccess_income(self):
 
         funds = Fund.objects().actives_for(self.owner)
-        assignments = fund_utils.create_assignments_for_income(funds, self.total_change, self.time_accomplished)
+        assignments = fund_utils.create_assignments_for_income(funds, self.total_change, self.date_accomplished)
         self.fund_transactions = assignments
 
     def adjust_change(self, change):
@@ -43,7 +43,7 @@ class IncomeTransaction(Transaction):
         new_account_transaction = self.account_transactions[0]
         new_account_transaction.change = Decimal(change).quantize(Decimal("1.00"))
 
-        new_fund_transactions = fund_utils.create_assignments_for_income(funds_to_adjust, self.total_change, self.time_accomplished, self.id)
+        new_fund_transactions = fund_utils.create_assignments_for_income(funds_to_adjust, self.total_change, self.date_accomplished, self.id)
 
         # TODO: I should add adjustments for funds that are currently above their max limit and those removed fund above 0
 

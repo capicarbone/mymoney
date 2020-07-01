@@ -1,5 +1,5 @@
 
-from datetime import datetime
+from datetime import date
 from typing import List
 from decimal import Decimal
 from models.fund import Fund
@@ -13,7 +13,7 @@ def create_assigments_for_expense(fund: Fund, total_change: Decimal) -> List[Fun
 
     return [new_fund_transaction]
 
-def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_time: datetime, ignoring: ObjectId = None) -> List[FundTransaction]:
+def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_time: date, ignoring: ObjectId = None) -> List[FundTransaction]:
 
     fund_transactions = []
     default_fund: Fund = next((fund for fund in funds if fund.is_default))

@@ -77,7 +77,7 @@ def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_not_eno
     funds = Fund.objects(owner=owner_id)
     change = Decimal(change)
 
-    transactions = fund_utils.create_assignments_for_income(funds, change, datetime.datetime.now())
+    transactions = fund_utils.create_assignments_for_income(funds, change, datetime.date.today())
 
     assert len(transactions) == len(funds)
 
@@ -115,13 +115,13 @@ def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_not_eno
 def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_grather_than_total_deficit(db, mongodb, owner_id, change, expected_assignments):
 
     account = Account.objects(owner=owner_id, name="Banco").get()
-    income = IncomeTransaction(owner=owner_id, account_id=account, change=7000, time_accomplished=datetime.datetime.now())
+    income = IncomeTransaction(owner=owner_id, account_id=account, change=7000, date_accomplished=datetime.date.today())
     income.save()
 
     funds = Fund.objects(owner=owner_id)
     change = Decimal(change)
 
-    transactions = fund_utils.create_assignments_for_income(funds, change, datetime.datetime.now())
+    transactions = fund_utils.create_assignments_for_income(funds, change, datetime.date.today())
 
     funds_assigned = [transaction for transaction in transactions if transaction.change > 0]
 
@@ -155,13 +155,13 @@ def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_grather
 ])
 def test_fund_assignments_for_income_with_any_fund_without_deficit(db, mongodb, owner_id, change, expected_assignments):
     account = Account.objects(owner=owner_id, name="Banco").get()
-    income = IncomeTransaction(owner=owner_id, account_id=account, change=14000, time_accomplished=datetime.datetime.now())
+    income = IncomeTransaction(owner=owner_id, account_id=account, change=14000, date_accomplished=datetime.date.today())
     income.save()
 
     funds = Fund.objects(owner=owner_id)
     change = Decimal(change)
 
-    transactions = fund_utils.create_assignments_for_income(funds, change, datetime.datetime.now())
+    transactions = fund_utils.create_assignments_for_income(funds, change, datetime.date.today())
 
     funds_assigned = [transaction for transaction in transactions if transaction.change > 0]
 

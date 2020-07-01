@@ -23,7 +23,7 @@ transaction_fields = {
     'id': fields.String,
     'description': fields.String,
     'category': fields.String(attribute='category.id'),
-    'time_accomplished': fields.DateTime(dt_format='iso8601'),
+    'date_accomplished': fields.DateTime(dt_format='iso8601'),
     'account_transactions': fields.List(fields.Nested(account_transaction_fields)),
     'fund_transactions': fields.List(fields.Nested(fund_transaction_fields))
 }
@@ -40,7 +40,7 @@ class TransactionListResource(Resource):
         parser.add_argument('account_id', type=str, required=True)
         parser.add_argument('change', type=float, required=True) # TODO: Add validation, must be different from 0
         parser.add_argument('category')
-        parser.add_argument('time_accomplished', type=lambda t: dateutil.parser.parse(t))
+        parser.add_argument('date_accomplished', type=lambda t: dateutil.parser.parse(t))
         args = parser.parse_args()
 
         if args['change'] == 0:
@@ -52,7 +52,7 @@ class TransactionListResource(Resource):
             transaction = IncomeTransaction(account_id=args['account_id'],
                                                     change=args['change'],
                                                     description=args['description'],
-                                                    time_accomplished=args['time_accomplished'],
+                                                    date_accomplished=args['date_accomplished'],
                                                     owner=auth.current_user())
 
         if args['change'] < 0:
@@ -60,7 +60,7 @@ class TransactionListResource(Resource):
                                             change=args['change'],
                                             description=args['description'],
                                             category=args['category'],
-                                            time_accomplished=args['time_accomplished'],
+                                            date_accomplished=args['date_accomplished'],
                                             owner=auth.current_user())
 
         try:
@@ -68,7 +68,7 @@ class TransactionListResource(Resource):
         except ValidationError as ex:
             flask.abort(400, ex.message)
 
-        args['time_accomplished'] = str(args['time_accomplished'])
+        args['date_accomplished'] = str(args['date_accomplished'])
         return transaction
 
 

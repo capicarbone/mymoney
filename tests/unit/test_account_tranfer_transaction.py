@@ -3,7 +3,7 @@ from .fixtures import *
 from decimal import Decimal
 from models.accounts_transfer_transaction import AccountsTransferTransaction
 from models.account import Account
-from datetime import datetime
+from datetime import date
 
 def test_account_transfer_transaction_valid_creation(db, mongodb,user):
     accounts = Account.objects(owner=user)
@@ -12,7 +12,7 @@ def test_account_transfer_transaction_valid_creation(db, mongodb,user):
     amount = 200
 
     t = AccountsTransferTransaction(owner=user, amount=amount, to_account_id=to_account.id, from_account_id=from_account.id,
-                                    time_accomplished=datetime.now())
+                                    date_accomplished=date.today())
     t.save()
 
     assert len(t.account_transactions) == 2

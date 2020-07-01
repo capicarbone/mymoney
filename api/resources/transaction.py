@@ -18,7 +18,7 @@ class TransactionResource(Resource):
         parser.add_argument('description', store_missing=False)
         #parser.add_argument('account', type=ObjectId, store_missing=False)
         parser.add_argument('category', type=ObjectId, store_missing=False)
-        parser.add_argument('time_accomplished', store_missing=False, type=lambda t: dateutil.parser.parse(t))
+        parser.add_argument('date_accomplished', store_missing=False, type=lambda t: dateutil.parser.parse(t))
         entity_args = parser.parse_args()
 
         parser = reqparse.RequestParser()
