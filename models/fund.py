@@ -3,7 +3,7 @@ import mongoengine
 from models.category import FundCategory
 from mongoengine.connection import get_db
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, date
 from bson.objectid import ObjectId
 
 class FundQuerySet(mongoengine.QuerySet):
@@ -43,13 +43,15 @@ class Fund(mongoengine.Document):
     def balance(self) -> Decimal:
         return self.balance_from(datetime.now())
 
-    def balance_from(self, from_time: datetime, ignoring: ObjectId = None):
+    def balance_from(self, from_time: date, ignoring: ObjectId = None):
         db = get_db()
+
+        from_datetime = datetime.combine(from_time, datetime.min.time())
 
         pipeline = [
             {'$unwind': '$fund_transactions'},
             {'$match':
-                 {'owner': self.owner.id, 'time_accomplished': {'$lte': from_time}, 'fund_transactions.fund': self.id}},
+                 {'owner': self.owner.id, 'time_accomplished': {'$lte': from_datetime}, 'fund_transactions.fund': self.id}},
             {'$group': {'_id': '$fund_transactions.fund', 'balance': {'$sum': '$fund_transactions.change'}}}
         ]
 
