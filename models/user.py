@@ -18,7 +18,7 @@ class User(mongoengine.Document):
             fund = Fund(owner=document,
                         name='Unassigned',
                         description="Default fund",
-                        percentage_assigment=0,
+                        percentage_assignment=0,
                         is_default=True)
             fund.save()
 

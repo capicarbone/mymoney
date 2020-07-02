@@ -39,7 +39,7 @@ class ExpenseTransaction(Transaction):
 
         fund = Fund.objects(categories=self.category, owner=self.owner).get()
 
-        assignments = fund_utils.create_assigments_for_expense(fund, self.total_change)
+        assignments = fund_utils.create_assignments_for_expense(fund, self.total_change)
         self.fund_transactions = assignments
 
     def adjust_change(self, change):
@@ -52,7 +52,7 @@ class ExpenseTransaction(Transaction):
         new_account_transaction = self.account_transactions[0]
         new_account_transaction.change = Decimal(change).quantize(Decimal('1.00'))
 
-        new_fund_transactions = fund_utils.create_assigments_for_expense(self.fund_transactions[0].fund.fetch(), self.total_change)
+        new_fund_transactions = fund_utils.create_assignments_for_expense(self.fund_transactions[0].fund.fetch(), self.total_change)
 
         # TODO: I should add adjustments for funds that are currently above their max limit and those removed fund above 0
 

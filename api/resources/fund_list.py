@@ -12,7 +12,7 @@ fund_fields = {
     'description': fields.String,
     'minimum_limit': fields.Float,
     'maximum_limit': fields.Float,
-    'percentage_assigment': fields.Float,
+    'percentage_assignment': fields.Float,
     'balance': fields.Float(attribute=lambda x: x.balance),
     'categories': fields.List(fields.Nested(category_fields))
 
@@ -33,7 +33,7 @@ class FundListResource(Resource):
         parser.add_argument('description')
         parser.add_argument('minimum_limit', type=float)
         parser.add_argument('maximum_limit', type=float)
-        parser.add_argument('percentage_assigment', type=float, required=True)
+        parser.add_argument('percentage_assignment', type=float, required=True)
         args = parser.parse_args()
 
         fund = Fund(**args)

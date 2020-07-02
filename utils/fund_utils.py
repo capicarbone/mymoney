@@ -6,7 +6,7 @@ from models.fund import Fund
 from models.fund_transaction import FundTransaction
 from bson.objectid import ObjectId
 
-def create_assigments_for_expense(fund: Fund, total_change: Decimal) -> List[FundTransaction] :
+def create_assignments_for_expense(fund: Fund, total_change: Decimal) -> List[FundTransaction] :
 
     new_fund_transaction = FundTransaction(change=total_change,
                                            fund=fund)
@@ -25,13 +25,13 @@ def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_
     total_deficit = sum([fund.get_deficit_from(from_time, ignoring) for fund in funds_in_deficit])
 
 
-    # Making assigment on funds with deficit, must be the priority
+    # Making assignment on funds with deficit, must be the priority
     for fund in funds_in_deficit:
 
         fund_balance = fund.balance_from(from_time, ignoring)
         fund_deficit = fund.get_deficit_from(from_time, ignoring)
 
-        to_assign: Decimal = Decimal(total_change * fund.percentage_assigment)
+        to_assign: Decimal = Decimal(total_change * fund.percentage_assignment)
 
         if total_deficit > total_change:
             to_assign = (total_change / len(funds_in_deficit)).quantize(Decimal('1.00'))
@@ -58,7 +58,7 @@ def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_
     remaining = remaining.quantize(Decimal("1.00"))
     assert 0 <= remaining <= total_change
 
-    # Taking funds that does not have assigment yet
+    # Taking funds that does not have assignment yet
     funds_for_assignment = [fund for fund in funds if
                             not next((t for t in fund_transactions if t.fund == fund),
                                      None) and not fund.is_default]
@@ -73,7 +73,7 @@ def create_assignments_for_income(funds:List[Fund], total_change: Decimal, from_
         if fund.maximum_limit is not None and fund.balance_from(from_time, ignoring) >= fund.maximum_limit:
             continue
 
-        to_assign = (total_change * fund.percentage_assigment) - adjustment
+        to_assign = (total_change * fund.percentage_assignment) - adjustment
 
         if fund.maximum_limit and to_assign + fund_balance > fund.maximum_limit:
             to_assign = to_assign - ((to_assign + fund_balance) - fund.maximum_limit)

@@ -17,7 +17,7 @@ def test_fund_assignments_for_expense(db, mongodb, user):
     fund = Fund.objects(owner=user, is_default=False)[0]
     change = -2000
 
-    transactions = fund_utils.create_assigments_for_expense(fund, change)
+    transactions = fund_utils.create_assignments_for_expense(fund, change)
 
     assert len(transactions) == 1
     assert transactions[0].change == Decimal(change).quantize(Decimal("1.00"))

@@ -20,7 +20,7 @@ class Fund(mongoengine.Document):
     description = mongoengine.StringField()
     minimum_limit = mongoengine.DecimalField()
     maximum_limit = mongoengine.DecimalField()
-    percentage_assigment = mongoengine.DecimalField(required=True, precision=2, min_value=0, max_value=1)
+    percentage_assignment = mongoengine.DecimalField(required=True, precision=2, min_value=0, max_value=1)
     is_active = mongoengine.BooleanField(default=True)
     is_default = mongoengine.BooleanField(default=False)
     categories = mongoengine.ListField(mongoengine.ReferenceField(FundCategory))
@@ -30,10 +30,10 @@ class Fund(mongoengine.Document):
     def clean(self):
         super().clean()
 
-        total_assigment = Decimal(Fund.objects(owner=self.owner).sum('percentage_assigment'))
+        total_assignment = Decimal(Fund.objects(owner=self.owner).sum('percentage_assignment'))
 
-        if total_assigment + self.percentage_assigment > 1:
-            raise mongoengine.ValidationError('Invalid percetange assigment')
+        if total_assignment + self.percentage_assignment > 1:
+            raise mongoengine.ValidationError('Invalid percetange assignment')
 
         if self.minimum_limit and self.maximum_limit and self.minimum_limit >= self.maximum_limit:
             raise mongoengine.ValidationError('Minimun limit must be less than maximum limit.')
