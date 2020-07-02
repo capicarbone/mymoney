@@ -1,6 +1,6 @@
 import os
 import click
-import decimal
+import pymongo
 from flask import Flask
 
 from flask_mongoengine import MongoEngine
@@ -29,5 +29,17 @@ def create_user(name, email, password):
                 password_hash=generate_password_hash(password))
     user.save()
     click.echo("User for email {} created!".format(email))
+
+@app.cli.command('fix_assignment_word_for_fund_documents')
+def fix_assignment_word_for_fund_documents():
+    host_uri = os.environ.get('MONGODB_URI', 'mongodb://localhost/mymoney')
+    database_name = pymongo.uri_parser.parse_uri(os.environ.get('MONGODB_URI', 'mongodb://localhost/mymoney'))['database']
+    mongo_client = pymongo.MongoClient(host_uri)
+    db = mongo_client[database_name]
+
+    db.fund.update({}, {'$rename': {'percentage_assigment': 'percentage_assignment'}}, multi=True)
+
+    click.echo("Fix applied")
+
 
 app.register_blueprint(api.bp)
