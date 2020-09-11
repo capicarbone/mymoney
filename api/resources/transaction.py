@@ -38,7 +38,7 @@ class TransactionResource(Resource):
 
         return transaction
 
-    def delete(self, account_id, transaction_id):
+    def delete(self, transaction_id):
 
         t = Transaction.objects(id=transaction_id, owner=auth.current_user())
         t.delete()
