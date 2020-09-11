@@ -89,4 +89,7 @@ class TransactionListResource(Resource):
         if 'fund_id' in args:
             match['fund_transactions__fund'] = args['fund_id']
 
-        return Transaction.objects(**match).paginate(page=args['page'], per_page=args['page_size']).items
+        query = Transaction.objects(**match).order_by('-date_accomplished')
+        print(query._query)
+
+        return query.paginate(page=args['page'], per_page=args['page_size']).items
