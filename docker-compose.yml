@@ -42,6 +42,5 @@ services:
             ME_CONFIG_MONGODB_ADMINPASSWORD: verysecret
         depends_on:
             - transactions_db
-
 volumes:
     mymoney_db_data:

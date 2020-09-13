@@ -18,7 +18,7 @@ api = Api(bp)
 resources = (
     #('/categories/<string:category_id>/subcategories', SubcategoriesList),
     ('/funds', FundListResource),
-    ('/funds/<string:fund_id>/categories', CategoriesList),
+    ('/categories', CategoriesList),
     ('/accounts', AccountListResource),
     ('/transactions', TransactionListResource),
     ('/transaction/<string:transaction_id>', TransactionResource),

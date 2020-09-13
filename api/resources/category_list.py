@@ -28,16 +28,18 @@ class CategoriesList(Resource):
         return list(fund.categories)
 
     @marshal_with(category_fields)
-    def post(self, fund_id):
-        self.__get_fund(fund_id)
+    def post(self):
 
         parser = reqparse.RequestParser()
         parser.add_argument('name', required=True)
+        parser.add_argument('fund')
         args = parser.parse_args()
 
         category = FundCategory(name=args['name'], owner=auth.current_user())
         category.save()
 
-        Fund.objects(id=fund_id).update_one(add_to_set__categories=category)
+        if (args['fund']):
+            self.__get_fund(args['fund'])
+            Fund.objects(id=args['fund']).update_one(add_to_set__categories=category)
 
         return category
