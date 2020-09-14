@@ -23,9 +23,18 @@ class CategoriesList(Resource):
             abort(404)
 
     @marshal_with(category_fields)
-    def get(self, fund_id):
-        fund = self.__get_fund(fund_id)
-        return list(fund.categories)
+    def get(self):
+
+        parser = reqparse.RequestParser()
+        parser.add_argument('fund_id', type=str, store_missing=False)
+        args = parser.parse_args()
+
+        if ('fund_id' in args):
+            fund = self.__get_fund(args['fund_id'])
+            return list(fund.categories)
+
+        user_categories = FundCategory.objects(owner=auth.current_user()).all()
+        return list(user_categories)
 
     @marshal_with(category_fields)
     def post(self):
@@ -38,7 +47,7 @@ class CategoriesList(Resource):
         category = FundCategory(name=args['name'], owner=auth.current_user())
         category.save()
 
-        if (args['fund']):
+        if ('fund' in args):
             self.__get_fund(args['fund'])
             Fund.objects(id=args['fund']).update_one(add_to_set__categories=category)
 
