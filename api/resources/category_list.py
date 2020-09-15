@@ -11,6 +11,7 @@ from flask_restful import Resource, marshal_with, reqparse, fields
 category_fields = {
     'id': fields.String,
     'name': fields.String,
+    'kind': fields.String
 }
 
 class CategoriesList(Resource):
@@ -41,13 +42,16 @@ class CategoriesList(Resource):
 
         parser = reqparse.RequestParser()
         parser.add_argument('name', required=True)
+        parser.add_argument('kind', required=True)
         parser.add_argument('fund')
         args = parser.parse_args()
 
-        category = TransactionCategory(name=args['name'], owner=auth.current_user())
+        category = TransactionCategory(name=args['name'],
+                                       kind=args['kind'],
+                                       owner=auth.current_user())
         category.save()
 
-        if ('fund' in args):
+        if 'fund' in args and not category.is_income():
             self.__get_fund(args['fund'])
             Fund.objects(id=args['fund']).update_one(add_to_set__categories=category)
 
