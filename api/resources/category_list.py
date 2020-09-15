@@ -1,7 +1,7 @@
 
 import mongoengine
 from flask import abort
-from models.category import FundCategory
+from models.category import TransactionCategory
 from models.fund import Fund
 
 from api.authentication import auth
@@ -33,7 +33,7 @@ class CategoriesList(Resource):
             fund = self.__get_fund(args['fund_id'])
             return list(fund.categories)
 
-        user_categories = FundCategory.objects(owner=auth.current_user()).all()
+        user_categories = TransactionCategory.objects(owner=auth.current_user()).all()
         return list(user_categories)
 
     @marshal_with(category_fields)
@@ -44,7 +44,7 @@ class CategoriesList(Resource):
         parser.add_argument('fund')
         args = parser.parse_args()
 
-        category = FundCategory(name=args['name'], owner=auth.current_user())
+        category = TransactionCategory(name=args['name'], owner=auth.current_user())
         category.save()
 
         if ('fund' in args):

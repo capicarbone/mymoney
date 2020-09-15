@@ -6,7 +6,7 @@ CATEGORY_TYPES = (
     'income'
 )
 
-class FundCategory(mongoengine.Document):
+class TransactionCategory(mongoengine.Document):
 
     owner = mongoengine.LazyReferenceField('User', required=True)
     name = mongoengine.StringField(max_length=25)

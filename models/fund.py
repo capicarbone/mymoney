@@ -1,6 +1,6 @@
 
 import mongoengine
-from models.category import FundCategory
+from models.category import TransactionCategory
 from mongoengine.connection import get_db
 from decimal import Decimal
 from datetime import datetime, date
@@ -23,7 +23,7 @@ class Fund(mongoengine.Document):
     percentage_assignment = mongoengine.DecimalField(required=True, precision=2, min_value=0, max_value=1)
     is_active = mongoengine.BooleanField(default=True)
     is_default = mongoengine.BooleanField(default=False)
-    categories = mongoengine.ListField(mongoengine.ReferenceField(FundCategory))
+    categories = mongoengine.ListField(mongoengine.ReferenceField(TransactionCategory))
 
     meta = {'queryset_class': FundQuerySet}
 

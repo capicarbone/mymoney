@@ -4,12 +4,12 @@ from decimal import Decimal
 from models.account_transaction import AccountTransaction
 from models.transaction import Transaction
 from models.fund import Fund
-from models.category import FundCategory
+from models.category import TransactionCategory
 from utils import fund_utils
 from mongoengine import signals
 
 class ExpenseTransaction(Transaction):
-    category = mongoengine.ReferenceField(FundCategory)
+    category = mongoengine.ReferenceField(TransactionCategory)
 
     def __init__(self, **kwargs):
 
