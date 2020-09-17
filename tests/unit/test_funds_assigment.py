@@ -114,6 +114,7 @@ def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_not_eno
 ])
 def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_grather_than_total_deficit(db, mongodb, owner_id, change, expected_assignments):
 
+    # I add a transaction to force deficit on some funds
     account = Account.objects(owner=owner_id, name="Banco").get()
     category = TransactionCategory.objects(kind="income")[0]
     income = IncomeTransaction(owner=owner_id, account_id=account, category=category,change=7000, date_accomplished=datetime.date.today())
@@ -155,6 +156,8 @@ def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_grather
     })
 ])
 def test_fund_assignments_for_income_with_any_fund_without_deficit(db, mongodb, owner_id, change, expected_assignments):
+
+    # I add a big transaction to force not deficit in any fund
     account = Account.objects(owner=owner_id, name="Banco").get()
     category = TransactionCategory.objects(kind="income")[0]
     income = IncomeTransaction(owner=owner_id, category=category, account_id=account, change=14000, date_accomplished=datetime.date.today())
