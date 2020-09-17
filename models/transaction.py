@@ -1,14 +1,14 @@
-from typing import List
+
 from decimal import Decimal
 import mongoengine
-from mongoengine import signals
 from flask_mongoengine import Document
 import datetime
 
 from .fund_transaction import FundTransaction
-from utils import fund_utils
+
 
 from models.account_transaction import AccountTransaction
+from models.category import TransactionCategory
 from models.user import User
 import pdb
 
@@ -26,6 +26,7 @@ class Transaction(Document):
     created_at = mongoengine.DateTimeField(default=lambda: datetime.datetime.now())
     account_transactions = mongoengine.EmbeddedDocumentListField(AccountTransaction)
     fund_transactions = mongoengine.EmbeddedDocumentListField(FundTransaction)
+    category = mongoengine.ReferenceField(TransactionCategory)
 
     meta = {'allow_inheritance': True}
 

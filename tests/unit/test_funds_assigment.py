@@ -1,4 +1,4 @@
-
+from models.category import TransactionCategory
 from .fixtures import *
 import pytest
 from decimal import Decimal
@@ -115,7 +115,8 @@ def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_not_eno
 def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_grather_than_total_deficit(db, mongodb, owner_id, change, expected_assignments):
 
     account = Account.objects(owner=owner_id, name="Banco").get()
-    income = IncomeTransaction(owner=owner_id, account_id=account, change=7000, date_accomplished=datetime.date.today())
+    category = TransactionCategory.objects(kind="income")[0]
+    income = IncomeTransaction(owner=owner_id, account_id=account, category=category,change=7000, date_accomplished=datetime.date.today())
     income.save()
 
     funds = Fund.objects(owner=owner_id)
@@ -155,7 +156,8 @@ def test_fund_assignments_for_income_with_funds_on_deficit_and_change_is_grather
 ])
 def test_fund_assignments_for_income_with_any_fund_without_deficit(db, mongodb, owner_id, change, expected_assignments):
     account = Account.objects(owner=owner_id, name="Banco").get()
-    income = IncomeTransaction(owner=owner_id, account_id=account, change=14000, date_accomplished=datetime.date.today())
+    category = TransactionCategory.objects(kind="income")[0]
+    income = IncomeTransaction(owner=owner_id, category=category, account_id=account, change=14000, date_accomplished=datetime.date.today())
     income.save()
 
     funds = Fund.objects(owner=owner_id)

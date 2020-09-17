@@ -6,13 +6,17 @@ import pytest
 from .fixtures import *
 from models.fund import Fund
 from models.income_transaction import IncomeTransaction
+from models.category import TransactionCategory
 from models.account import Account
 
 @pytest.mark.parametrize(('change'), [0.5, 2, 233.12, 1333.33, 20000, 100000, 1000000])
 def test_valid_creation_for_income_transaction(db, mongodb, user, change):
     account = Account.objects(owner=user)[0]
 
+    category = TransactionCategory.objects(kind="income")[0]
+
     income = IncomeTransaction(owner=user, account_id=account.id, change=change,
+                               category=category.id,
                                date_accomplished=datetime.date.today())
 
     income.save()

@@ -52,6 +52,7 @@ class TransactionListResource(Resource):
             transaction = IncomeTransaction(account_id=args['account_id'],
                                                     change=args['change'],
                                                     description=args['description'],
+                                                    category=args['category'],
                                                     date_accomplished=args['date_accomplished'],
                                                     owner=auth.current_user())
 
