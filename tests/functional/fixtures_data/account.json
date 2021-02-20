@@ -1,0 +1,7 @@
+[
+  {"_id":{"$oid":"5ec7441e192cf1720a170389"},"name":"Banco","owner":{"$oid":"5ec7411b8741c3f6e1f07cea"},"created_at":{"$date":{"$numberLong":"1590099406040"}}},
+  {"_id":{"$oid":"5ec74423192cf1720a17038a"},"name":"Cash","owner":{"$oid":"5ec7411b8741c3f6e1f07cea"},"created_at":{"$date":{"$numberLong":"1590099411724"}}},
+
+  {"name":"Banco","owner":{"$oid":"5ee24ef16c8e3ad070cbf919"},"created_at":{"$date":{"$numberLong":"1590099406040"}}},
+  {"name":"Cash","owner":{"$oid":"5ee24ef16c8e3ad070cbf919"},"created_at":{"$date":{"$numberLong":"1590099411724"}}}
+]

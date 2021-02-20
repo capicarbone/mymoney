@@ -1,0 +1,14 @@
+[
+  {"_id":{"$oid":"5ec742d8192cf1720a17037d"},"owner":{"$oid":"5ec7411b8741c3f6e1f07cea"},"kind": "expense","name":"ALquiler","created_at":{"$date":{"$numberLong":"1590099080131"}}},
+  {"_id":{"$oid":"5ec742dd192cf1720a17037e"},"owner":{"$oid":"5ec7411b8741c3f6e1f07cea"},"kind": "expense","name":"MErcado","created_at":{"$date":{"$numberLong":"1590099085324"}}},
+  {"_id":{"$oid":"5ec742e4192cf1720a17037f"},"owner":{"$oid":"5ec7411b8741c3f6e1f07cea"},"kind": "expense","name":"Corte de cabello","created_at":{"$date":{"$numberLong":"1590099092818"}}},
+  {"_id":{"$oid":"5ec7434f192cf1720a170381"},"owner":{"$oid":"5ec7411b8741c3f6e1f07cea"},"kind": "expense","name":"Remesa","created_at":{"$date":{"$numberLong":"1590099199175"}}},
+  {"_id":{"$oid":"5ec74356192cf1720a170382"},"owner":{"$oid":"5ec7411b8741c3f6e1f07cea"},"kind": "expense","name":"Regalos","created_at":{"$date":{"$numberLong":"1590099206211"}}},
+  {"_id":{"$oid":"5ec7436f192cf1720a170383"},"owner":{"$oid":"5ec7411b8741c3f6e1f07cea"},"kind": "expense","name":"Consulta","created_at":{"$date":{"$numberLong":"1590099231474"}}},
+  {"_id":{"$oid":"5ec74376192cf1720a170384"},"owner":{"$oid":"5ec7411b8741c3f6e1f07cea"},"kind": "expense","name":"Medicamento","created_at":{"$date":{"$numberLong":"1590099238748"}}},
+  {"_id":{"$oid":"5ec743a8192cf1720a170385"},"owner":{"$oid":"5ec7411b8741c3f6e1f07cea"},"kind": "expense","name":"Boletos","created_at":{"$date":{"$numberLong":"1590099288968"}}},
+  {"_id":{"$oid":"5ec743b0192cf1720a170386"},"owner":{"$oid":"5ec7411b8741c3f6e1f07cea"},"kind": "expense","name":"Hotel","created_at":{"$date":{"$numberLong":"1590099296606"}}},
+  {"_id":{"$oid":"5ec743d3192cf1720a170387"},"owner":{"$oid":"5ec7411b8741c3f6e1f07cea"},"kind": "expense","name":"Curso online","created_at":{"$date":{"$numberLong":"1590099331350"}}},
+  {"_id":{"$oid":"5ec743d7192cf1720a170388"},"owner":{"$oid":"5ec7411b8741c3f6e1f07cea"},"kind": "expense", "name":"Libro","created_at":{"$date":{"$numberLong":"1590099335607"}}},
+  {"_id":{"$oid":"5f60d51cc22a5d685b27bfe4"},"owner":{"$oid":"5ec7411b8741c3f6e1f07cea"}, "kind": "income","name":"Sueldo","created_at":{"$date":{"$numberLong":"1590099335607"}}}
+]
