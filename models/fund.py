@@ -43,10 +43,10 @@ class Fund(mongoengine.Document):
     def balance(self) -> Decimal:
         return self.balance_from(datetime.now())
 
-    def balance_from(self, from_time: date, ignoring: ObjectId = None):
+    def balance_from(self, from_date: date, ignoring: ObjectId = None):
         db = get_db()
 
-        from_datetime = datetime.combine(from_time, datetime.min.time())
+        from_datetime = datetime.combine(from_date, datetime.max.time())
 
         pipeline = [
             {'$unwind': '$fund_transactions'},
