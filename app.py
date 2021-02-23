@@ -9,37 +9,48 @@ from werkzeug.security import generate_password_hash
 
 from models.user import User
 
-#decimal.getcontext().prec = 2
-app = Flask(__name__, instance_relative_config=True)
+# TODO: Improve to recommended approach https://flask.palletsprojects.com/en/1.1.x/cli/#custom-scripts
+def add_commands(app):
 
-app.config['MONGODB_SETTINGS'] = {
-    'host': os.environ.get('MONGODB_URI', 'mongodb://localhost/mymoney'),
-    'retryWrites': False
-}
+    @app.cli.command('create-user')
+    @click.argument('name')
+    @click.argument('email')
+    @click.argument('password')
+    def create_user(name, email, password):
+        user = User(name=name,
+                    email=email,
+                    password_hash=generate_password_hash(password))
+        user.save()
+        click.echo("User for email {} created!".format(email))
 
-MongoEngine(app)
+    @app.cli.command('fix_assignment_word_for_fund_documents')
+    def fix_assignment_word_for_fund_documents():
+        host_uri = os.environ.get('MONGODB_URI', 'mongodb://localhost/mymoney')
+        database_name = pymongo.uri_parser.parse_uri(os.environ.get('MONGODB_URI', 'mongodb://localhost/mymoney'))['database']
+        mongo_client = pymongo.MongoClient(host_uri)
+        db = mongo_client[database_name]
 
-@app.cli.command('create-user')
-@click.argument('name')
-@click.argument('email')
-@click.argument('password')
-def create_user(name, email, password):
-    user = User(name=name,
-                email=email,
-                password_hash=generate_password_hash(password))
-    user.save()
-    click.echo("User for email {} created!".format(email))
+        db.fund.update({}, {'$rename': {'percentage_assigment': 'percentage_assignment'}}, multi=True)
 
-@app.cli.command('fix_assignment_word_for_fund_documents')
-def fix_assignment_word_for_fund_documents():
-    host_uri = os.environ.get('MONGODB_URI', 'mongodb://localhost/mymoney')
-    database_name = pymongo.uri_parser.parse_uri(os.environ.get('MONGODB_URI', 'mongodb://localhost/mymoney'))['database']
-    mongo_client = pymongo.MongoClient(host_uri)
-    db = mongo_client[database_name]
+        click.echo("Fix applied")
 
-    db.fund.update({}, {'$rename': {'percentage_assigment': 'percentage_assignment'}}, multi=True)
+def create_app(test_config=None):
+    app = Flask(__name__, instance_relative_config=True)
 
-    click.echo("Fix applied")
+    app.config['MONGODB_SETTINGS'] = {
+        'host': os.environ.get('MONGODB_URI', 'mongodb://localhost/mymoney'),
+        'retryWrites': False
+    }
+
+    MongoEngine(app)
+    app.register_blueprint(api.bp)
+
+    add_commands(app)
+
+    return app
 
 
-app.register_blueprint(api.bp)
+
+
+
+
