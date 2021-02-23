@@ -37,10 +37,13 @@ def add_commands(app):
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
 
-    app.config['MONGODB_SETTINGS'] = {
-        'host': os.environ.get('MONGODB_URI', 'mongodb://localhost/mymoney'),
-        'retryWrites': False
-    }
+    if test_config is not None:
+        app.config.from_mapping(test_config)
+    else:
+        app.config['MONGODB_SETTINGS'] = {
+            'host': os.environ.get('MONGODB_URI', 'mongodb://localhost/mymoney'),
+            'retryWrites': False
+        }
 
     MongoEngine(app)
     app.register_blueprint(api.bp)
