@@ -4,7 +4,7 @@ from .user import User
 from mongoengine.connection import get_db
 
 class Account(mongoengine.Document):
-    name = mongoengine.StringField(required=True)
+    name = mongoengine.StringField(required=True, blank=False)
     owner = mongoengine.LazyReferenceField(User, required=True)
     created_at = mongoengine.DateTimeField(default=lambda: datetime.datetime.now())
 
