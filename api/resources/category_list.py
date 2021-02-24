@@ -1,6 +1,7 @@
 
+import pytest
 import mongoengine
-from flask import abort
+from flask import abort, request
 from models.category import TransactionCategory
 from models.fund import Fund
 
@@ -30,7 +31,7 @@ class CategoriesList(Resource):
         parser.add_argument('fund_id', type=str, store_missing=False)
         args = parser.parse_args()
 
-        if ('fund_id' in args):
+        if 'fund_id' in args:
             fund = self.__get_fund(args['fund_id'])
             return list(fund.categories)
 
@@ -42,17 +43,18 @@ class CategoriesList(Resource):
 
         parser = reqparse.RequestParser()
         parser.add_argument('name', required=True)
-        parser.add_argument('kind', required=True)
-        parser.add_argument('fund')
+        parser.add_argument('kind', required=True, choices=['income', 'expense'])
+        parser.add_argument('fund', required=request.json['kind'] == 'expense')
         args = parser.parse_args()
 
         category = TransactionCategory(name=args['name'],
                                        kind=args['kind'],
                                        owner=auth.current_user())
+
         category.save()
 
-        if 'fund' in args and not category.is_income():
-            self.__get_fund(args['fund'])
-            Fund.objects(id=args['fund']).update_one(add_to_set__categories=category)
+        if not category.is_income():
+            Fund.objects(id=args['fund'], owner=auth.current_user())\
+                .update_one(add_to_set__categories=category)
 
         return category
