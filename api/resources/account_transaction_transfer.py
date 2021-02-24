@@ -20,7 +20,10 @@ class AccountTransactionTransfer(Resource):
         parser.add_argument('to', type=ObjectId, required=True)
         parser.add_argument('amount', type=Decimal, required=True)
         parser.add_argument('description', type=str)
-        parser.add_argument('date_accomplished', type=lambda t: dateutil.parser.parse(t))
+        parser.add_argument('date_accomplished',
+                            type=lambda t: dateutil.parser.parse(t),
+                            required=True
+                            )
         args = parser.parse_args()
 
         transaction = AccountsTransferTransaction(owner=auth.current_user(), from_account_id=args['from'], to_account_id=args['to'],
