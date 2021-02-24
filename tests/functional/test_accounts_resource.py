@@ -30,7 +30,7 @@ def test_post_account_invalid(client, authenticated_header, mongodb):
     rv = client.post(resource_url, headers=authenticated_header, json={'name': ""})
     assert rv.status_code == 400
 
-def test_account_unauthorizred_request(client, mongodb):
+def test_account_unauthorized_request(client, mongodb):
     rv = client.get(resource_url)
     assert rv.status_code == 401
 
