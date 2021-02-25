@@ -1,1 +1,1 @@
-web: gunicorn wsgi:mymoney
+web: gunicorn wsgi:app
