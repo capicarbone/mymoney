@@ -59,7 +59,7 @@ def test_invalid_post_account_transfer(client, authenticated_header, mongodb):
 
     assert rv.status_code == 400
 
-def test_unauthoeized_post_account_transfer(client, mongodb):
+def test_unauthorized_post_account_transfer(client, mongodb):
     transfer_data = {
         'from': '5ec7441e192cf1720a170389',
         'to': '5ec74423192cf1720a17038a',
