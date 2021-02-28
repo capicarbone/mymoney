@@ -18,6 +18,15 @@ category_fields = {
 class CategoriesList(Resource):
     method_decorators = [auth.login_required]
 
+    def __is_fund_required(self):
+        if request.form:
+            return request.form['kind'] == 'expense'
+
+        if request.json:
+            return request.json['kind'] == 'expense'
+
+        return False
+
     def __get_fund(self, fund_id):
         try:
             return Fund.objects(id=fund_id, owner=auth.current_user()).get()
@@ -44,7 +53,7 @@ class CategoriesList(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('name', required=True)
         parser.add_argument('kind', required=True, choices=['income', 'expense'])
-        parser.add_argument('fund', required=request.json['kind'] == 'expense')
+        parser.add_argument('fund', required=self.__is_fund_required())
         args = parser.parse_args()
 
         category = TransactionCategory(name=args['name'],
