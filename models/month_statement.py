@@ -4,11 +4,13 @@ from .user import User
 from .account import Account
 from .category import TransactionCategory
 from .fund import Fund
+from .transaction import Transaction
 
 
 class AccountChange(mongoengine.EmbeddedDocument):
     account = mongoengine.LazyReferenceField(Account, required=True)
-    change = mongoengine.DecimalField(required=True)
+    income = mongoengine.DecimalField(required=True, default=0.0)
+    expense = mongoengine.DecimalField(required=True, default=0.0)
 
 
 class CategoryChange(mongoengine.EmbeddedDocument):
@@ -18,7 +20,8 @@ class CategoryChange(mongoengine.EmbeddedDocument):
 
 class FundChange(mongoengine.EmbeddedDocument):
     fund = mongoengine.LazyReferenceField(Fund, required=True)
-    change = mongoengine.DecimalField(required=True)
+    income = mongoengine.DecimalField(required=True, default=0.0)
+    expense = mongoengine.DecimalField(required=True, default=0.0)
 
 
 class MonthStatement(mongoengine.Document):
@@ -28,6 +31,7 @@ class MonthStatement(mongoengine.Document):
     accounts = mongoengine.EmbeddedDocumentListField(AccountChange)
     categories = mongoengine.EmbeddedDocumentListField(CategoryChange)
     funds = mongoengine.EmbeddedDocumentListField(FundChange)
+    last_transaction_processed = mongoengine.LazyReferenceField(Transaction)
 
     def get_cateogry_change(self, category_id: str):
         search = [cat for cat in self.categories if cat.category == category_id]
