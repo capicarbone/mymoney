@@ -1,27 +1,28 @@
+from decimal import Decimal
 
 import mongoengine
 from .user import User
 from .account import Account
 from .category import TransactionCategory
 from .fund import Fund
-from .transaction import Transaction
+
 
 
 class AccountChange(mongoengine.EmbeddedDocument):
     account = mongoengine.LazyReferenceField(Account, required=True)
-    income = mongoengine.DecimalField(required=True, default=0.0)
-    expense = mongoengine.DecimalField(required=True, default=0.0)
+    income = mongoengine.DecimalField(required=True, default=Decimal(0.0))
+    expense = mongoengine.DecimalField(required=True, default=Decimal(0.0))
 
 
 class CategoryChange(mongoengine.EmbeddedDocument):
     category = mongoengine.LazyReferenceField(TransactionCategory, required=True)
-    change = mongoengine.DecimalField(required=True)
+    change = mongoengine.DecimalField(required=True, default=Decimal(0.0))
 
 
 class FundChange(mongoengine.EmbeddedDocument):
     fund = mongoengine.LazyReferenceField(Fund, required=True)
-    income = mongoengine.DecimalField(required=True, default=0.0)
-    expense = mongoengine.DecimalField(required=True, default=0.0)
+    income = mongoengine.DecimalField(required=True, default=Decimal(0.0))
+    expense = mongoengine.DecimalField(required=True, default=Decimal(0.0))
 
 
 class MonthStatement(mongoengine.Document):
@@ -31,13 +32,20 @@ class MonthStatement(mongoengine.Document):
     accounts = mongoengine.EmbeddedDocumentListField(AccountChange)
     categories = mongoengine.EmbeddedDocumentListField(CategoryChange)
     funds = mongoengine.EmbeddedDocumentListField(FundChange)
-    last_transaction_processed = mongoengine.LazyReferenceField(Transaction)
+    last_transaction_processed = mongoengine.LazyReferenceField('Transaction', required=True)
 
     def get_cateogry_change(self, category_id: str):
         search = [cat for cat in self.categories if cat.category == category_id]
 
-        if len(search) == 1:
-            return search[0]
-        else:
-            return None
+        return search[0] if len(search) == 1 else None
+
+    def get_account_change(self, account_id: str):
+        search = [acc for acc in self.accounts if acc.account == account_id]
+
+        return search[0] if len(search) == 1 else None
+
+    def get_fund_change(self, fund_id: str):
+        search = [fnd for fnd in self.funds if fnd.fund == fund_id]
+
+        return search[0] if len(search) == 1 else None
 

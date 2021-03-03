@@ -62,8 +62,14 @@ class IncomeTransaction(Transaction):
 
         assert sum([ft.change for ft in document.fund_transactions]) == document.total_change
 
+    @classmethod
+    def post_save(cls, sender, document: 'IncomeTransaction', created: bool):
+        if created:
+            document._register_to_statement()
 
+signals.post_save.connect(IncomeTransaction.post_save, sender=IncomeTransaction)
 signals.pre_save_post_validation.connect(IncomeTransaction.pre_save_post_validation, sender=IncomeTransaction)
+
 
 
 
