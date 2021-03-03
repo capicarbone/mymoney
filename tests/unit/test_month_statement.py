@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from .fixtures import *
 import datetime
 import mongoengine
@@ -9,7 +11,7 @@ from models.expense_transaction import ExpenseTransaction
 from models.month_statement import MonthStatement
 
 
-@pytest.mark.parametrize(('change',), [(-300,), (300,)])
+@pytest.mark.parametrize(('change',), [(Decimal("-300.00"),), (Decimal("300.00"),), (Decimal("2000.21"),), (Decimal("-1.23"),)])
 def test_new_transaction_generates_new_month_statement(db, mongodb, user, change):
     account = Account.objects(owner=user)[0]
 
@@ -43,10 +45,14 @@ def test_new_transaction_generates_new_month_statement(db, mongodb, user, change
     assert len(statement.funds) > 0
 
     assert statement.categories[0].change == change
-    assert statement.categories[0].category == income_category.id
+
+    if change > 0:
+        assert statement.categories[0].category.id == income_category.id
+    else:
+        assert statement.categories[0].category.id == expense_category.id
 
     assert statement.accounts[0].income + statement.accounts[0].expense == change
-    assert statement.accounts[0].account == account.id
+    assert statement.accounts[0].account.id == account.id
 
     assert sum([fund_change.income + fund_change.expense for fund_change in statement.funds]) == change
 
