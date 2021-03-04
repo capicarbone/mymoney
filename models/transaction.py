@@ -69,7 +69,7 @@ class Transaction(Document):
         category_change.change += self.total_change
 
         account = self.account_transactions[0].account
-        account_change = month_statement.get_account_change(account)
+        account_change = month_statement.get_account_change(account.id)
 
         if account_change is None:
             account_change = AccountChange(account=account)

@@ -35,17 +35,17 @@ class MonthStatement(mongoengine.Document):
     last_transaction_processed = mongoengine.LazyReferenceField('Transaction', required=True)
 
     def get_cateogry_change(self, category_id: str):
-        search = [cat for cat in self.categories if cat.category == category_id]
+        search = [cat for cat in self.categories if cat.category.id == category_id]
 
         return search[0] if len(search) == 1 else None
 
     def get_account_change(self, account_id: str):
-        search = [acc for acc in self.accounts if acc.account == account_id]
+        search = [acc for acc in self.accounts if acc.account.id == account_id]
 
         return search[0] if len(search) == 1 else None
 
     def get_fund_change(self, fund_id: str):
-        search = [fnd for fnd in self.funds if fnd.fund == fund_id]
+        search = [fnd for fnd in self.funds if fnd.fund.id == fund_id]
 
         return search[0] if len(search) == 1 else None
 

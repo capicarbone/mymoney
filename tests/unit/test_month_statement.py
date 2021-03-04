@@ -64,35 +64,54 @@ def test_new_transaction_generates_new_month_statement(db, mongodb, user, change
         assert sum([fund_change.income for fund_change in statement.funds]) == 0
 
 
-def test_new_transaction_updates_existing_month_statement(db, mongodb, user):
-    # TODO: Implement this with paramenteres supporting differente transactions
+@pytest.mark.parametrize(('changes'), [
+    ([Decimal("-100.00"), Decimal("300"), Decimal("500")]),
+    ([Decimal("-222.00"), Decimal("400"), Decimal("-500")]),
+    ([Decimal("-211.12"), Decimal("12.1"), Decimal("500.00"), Decimal("451.00"), Decimal("723.99")]),
+])
+def test_new_transaction_updates_existing_month_statement(db, mongodb, user, changes):
     account = Account.objects(owner=user)[0]
 
-    category = TransactionCategory.objects(kind="income")[0]
+    income_category = TransactionCategory.objects(kind="income")[0]
+    expense_category = TransactionCategory.objects(kind="expense")[0]
 
     transaction_date = datetime.date(2021, 2, 12)
-    change1 = 300
 
-    income = IncomeTransaction(owner=user, account_id=account.id, change=change1,
-                               category=category.id,
+    for change in changes:
+
+        if change > 0:
+            transaction = IncomeTransaction(owner=user, account_id=account.id, change=change,
+                               category=income_category,
+                               date_accomplished=transaction_date)
+        else:
+            transaction = ExpenseTransaction(owner=user, account_id=account.id, change=change,
+                               category=expense_category,
                                date_accomplished=transaction_date)
 
-    income.save()
+        transaction.save()
 
-    change2 = 100
-    income = IncomeTransaction(owner=user, account_id=account.id, change=change2,
-                               category=category.id,
-                               date_accomplished=transaction_date)
-
-    income.save()
-
-    statement = MonthStatement.objects(owner=user,
+    statements = MonthStatement.objects(owner=user,
                                        month=transaction_date.month,
-                                       year=transaction_date.year).get()
+                                       year=transaction_date.year).all()
+    assert len(statements) == 1
+    statement = statements[0]
 
-    assert len(statement.categories) == 1
-    assert statement.categories[0].change == change1 + change2
+    total_income = sum([change for change in changes if change > 0])
+    total_expense = sum(changes) - total_income
+    total_balance = total_income + total_expense
+
+    assert len(statement.categories) == 2
+    for category_change in statement.categories:
+        if category_change.category.id == expense_category.id:
+            assert category_change.change == total_expense
+
+        if category_change.category.id == income_category.id:
+            assert category_change.change == total_income
+
     assert len(statement.accounts) == 1
-    assert statement.accounts[0] == change1 + change2
+    assert statement.accounts[0].income == total_income
+    assert statement.accounts[0].expense == total_expense
     assert len(statement.funds) > 0
-    assert sum([fund_change.income + fund_change.expense for fund_change in statement.funds]) == change1 + change2
+    assert sum([fund_change.income + fund_change.expense for fund_change in statement.funds]) == total_balance
+
+    # TODO: Collect every fund transacion and validate against fund changes.
