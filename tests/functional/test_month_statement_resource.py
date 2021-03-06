@@ -5,15 +5,15 @@ resource_url = '/api/reports/month_statements'
 
 def test_transaction_post_creates_month_statement(client, authenticated_header, mongodb):
 
-    query_params = {'year': '2020', 'month': '2'}
+    query_params = {'year': 2020, 'month': 2}
 
-    rv = client.get(resource_url,
+    res = client.get(resource_url,
                     headers=authenticated_header,
                     query_string=query_params)
 
-    assert rv.status_code == 200
-    assert type(rv.get_json()['_items']) is list
-    assert len(rv.get_json()['_items']) == 0
+    assert res.status_code == 200
+    assert type(res.get_json()['_items']) is list
+    assert len(res.get_json()['_items']) == 0
 
 
     transaction_data = {
@@ -27,10 +27,12 @@ def test_transaction_post_creates_month_statement(client, authenticated_header, 
                  headers=authenticated_header,
                  json=transaction_data)
 
-    rv = client.get(resource_url,
+    res = client.get(resource_url,
                     headers=authenticated_header,
                     query_string=query_params)
 
-    assert rv.status_code == 200
-    assert type(rv.get_json()['_items']) is list
-    assert len(rv.get_json()['_items']) == 1
+    assert res.status_code == 200
+    assert type(res.get_json()['_items']) is list
+    assert len(res.get_json()['_items']) == 1
+    assert res.get_json()['_items'][0]['year'] == query_params['year']
+    assert res.get_json()['_items'][0]['month'] == query_params['month']
