@@ -49,3 +49,57 @@ class MonthStatement(mongoengine.Document):
 
         return search[0] if len(search) == 1 else None
 
+    @classmethod
+    def add_to_statement(cls, transaction: 'Transaction'):
+        if transaction.is_transfer():
+            return
+
+        try:
+            month_statement = MonthStatement.objects(owner=transaction.owner,
+                                                     month=transaction.date_accomplished.month,
+                                                     year=transaction.date_accomplished.year).get()
+        except mongoengine.DoesNotExist:
+            month_statement = MonthStatement(owner=transaction.owner,
+                                             month=transaction.date_accomplished.month,
+                                             year=transaction.date_accomplished.year)
+
+        category_change = month_statement.get_cateogry_change(transaction.category.id)
+
+        if category_change is None:
+            category_change = CategoryChange(category=transaction.category)
+            month_statement.categories.insert(0, category_change)
+
+        category_change.change += transaction.total_change
+
+        account = transaction.account_transactions[0].account
+        account_change = month_statement.get_account_change(account.id)
+
+        if account_change is None:
+            account_change = AccountChange(account=account)
+            month_statement.accounts.insert(0, account_change)
+
+        if transaction.total_change > 0:
+            account_change.income += transaction.total_change
+        else:
+            account_change.expense += transaction.total_change
+
+        for fund_transaction in transaction.fund_transactions:
+            fund_change = month_statement.get_fund_change(fund_transaction.fund)
+
+            if fund_change is None:
+                fund_change = FundChange(fund=fund_transaction.fund)
+                month_statement.funds.insert(0, fund_change)
+
+            if fund_transaction.change > 0:
+                fund_change.income += fund_transaction.change
+            else:
+                fund_change.expense += fund_transaction.change
+
+        month_statement.last_transaction_processed = transaction.id
+        month_statement.save()
+
+    @classmethod
+    def transaction_post_save(cls, sender, document: 'Transaction', created: bool):
+        if created:
+            cls.add_to_statement(document)
+

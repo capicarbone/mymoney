@@ -2,6 +2,7 @@
 import mongoengine
 from decimal import Decimal
 from models.account_transaction import AccountTransaction
+from models.month_statement import MonthStatement
 from models.transaction import Transaction
 from models.fund import Fund
 from utils import fund_utils
@@ -68,5 +69,5 @@ class ExpenseTransaction(Transaction):
             document._register_to_statement()
 
 
-signals.post_save.connect(ExpenseTransaction.post_save, sender=ExpenseTransaction)
+signals.post_save.connect(MonthStatement.transaction_post_save, sender=ExpenseTransaction)
 signals.pre_save_post_validation.connect(ExpenseTransaction.pre_save_post_validation, sender=ExpenseTransaction)
