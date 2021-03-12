@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from models.transaction import Transaction
 from .fixtures import *
 import datetime
 import mongoengine
@@ -115,3 +116,54 @@ def test_new_transaction_updates_existing_month_statement(db, mongodb, user, cha
     assert sum([fund_change.income + fund_change.expense for fund_change in statement.funds]) == total_balance
 
     # TODO: Collect every fund transacion and validate against fund changes.
+
+@pytest.mark.parametrize(('changes'), [
+    ([Decimal("-100.00"), Decimal("300"), Decimal("500")]),
+    ([Decimal("-222.00"), Decimal("400"), Decimal("-500")]),
+    ([Decimal("-211.12"), Decimal("12.1"), Decimal("500.00"), Decimal("451.00"), Decimal("723.99")]),
+])
+def test_removed_transaction_changes_month_statement(db, user, mongodb, changes):
+    account = Account.objects(owner=user)[0]
+
+    income_category = TransactionCategory.objects(kind="income")[0]
+    expense_category = TransactionCategory.objects(kind="expense")[0]
+
+    transaction_date = datetime.date(2021, 2, 12)
+
+    transactions_ids = []
+    expected_total_change = Decimal("0.0")
+
+    for change in changes:
+
+        if change > 0:
+            transaction = IncomeTransaction(owner=user, account_id=account.id, change=change,
+                               category=income_category,
+                               date_accomplished=transaction_date)
+        else:
+            transaction = ExpenseTransaction(owner=user, account_id=account.id, change=change,
+                               category=expense_category,
+                               date_accomplished=transaction_date)
+
+        transaction.save()
+        transactions_ids.append(transaction.id)
+        expected_total_change += change
+
+    month_statement = MonthStatement.objects(month=transaction_date.month,
+                                             year=transaction_date.year,
+                                             owner=user
+                                             ).get()
+
+    for transaction_id in transactions_ids:
+        transaction = Transaction.objects(id=transaction_id).get()
+        total_change = transaction.total_change
+        transaction.delete()
+
+        accounts_total_change = sum([acc.income + acc.expense for acc in month_statement.accounts])
+        funds_total_change = sum([fnd.income + fnd.expense for fnd in month_statement.funds])
+        categories_total_change = sum([cat.change for cat in month_statement.categories])
+
+        expected_total_change -= total_change
+        assert accounts_total_change == expected_total_change
+        assert funds_total_change == expected_total_change
+        assert categories_total_change == expected_total_change
+
