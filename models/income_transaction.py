@@ -68,8 +68,10 @@ class IncomeTransaction(Transaction):
         if created:
             document._register_to_statement()
 
+signals.post_delete.connect(MonthStatement.transaction_post_delete, sender=IncomeTransaction)
 signals.post_save.connect(MonthStatement.transaction_post_save, sender=IncomeTransaction)
 signals.pre_save_post_validation.connect(IncomeTransaction.pre_save_post_validation, sender=IncomeTransaction)
+
 
 
 

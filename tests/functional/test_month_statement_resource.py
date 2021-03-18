@@ -37,5 +37,3 @@ def test_transaction_post_creates_month_statement(client, authenticated_header, 
     assert res.get_json()['_items'][0]['year'] == query_params['year']
     assert res.get_json()['_items'][0]['month'] == query_params['month']
 
-def test_transaction_delete_adjusts_month_statement(client, authenticated_header, mongodb):
-    pass

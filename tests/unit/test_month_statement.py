@@ -148,15 +148,17 @@ def test_removed_transaction_changes_month_statement(db, user, mongodb, changes)
         transactions_ids.append(transaction.id)
         expected_total_change += change
 
-    month_statement = MonthStatement.objects(month=transaction_date.month,
+    month_statement_query =MonthStatement.objects(month=transaction_date.month,
                                              year=transaction_date.year,
                                              owner=user
-                                             ).get()
+                                             )
 
     for transaction_id in transactions_ids:
         transaction = Transaction.objects(id=transaction_id).get()
         total_change = transaction.total_change
         transaction.delete()
+
+        month_statement = month_statement_query.get()
 
         accounts_total_change = sum([acc.income + acc.expense for acc in month_statement.accounts])
         funds_total_change = sum([fnd.income + fnd.expense for fnd in month_statement.funds])

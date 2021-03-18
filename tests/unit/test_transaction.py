@@ -3,13 +3,14 @@ from models.transaction import Transaction
 from models.account_transaction import AccountTransaction
 from models.fund_transaction import FundTransaction
 from datetime import date
+from .fixtures import *
 
 def test_minus_transaction_retrieve_reverse_transaction(db, mongodb):
     transaction = Transaction(owner="60528afc743bfda62d489ff0",
                               date_accomplished=date.today(),
                               description="A description",
                               created_at=date.today(),
-                              #category="60528c3a3fcd7e1e4f25de7a"
+                              category="5ec742d8192cf1720a17037d"
                               )
 
     transaction.account_transactions.insert(0, AccountTransaction(account="5ec7441e192cf1720a170389", change=2000))
@@ -34,9 +35,11 @@ def test_minus_transaction_retrieve_reverse_transaction(db, mongodb):
     assert len(transaction.fund_transactions) == len(reversed_transaction.fund_transactions)
 
     for i in range(0,len(transaction.fund_transactions)):
+        assert transaction.fund_transactions[i].fund == reversed_transaction.fund_transactions[i].fund
         assert transaction.fund_transactions[i].change == -reversed_transaction.fund_transactions[i].change
 
     for i in range(0,len(transaction.account_transactions)):
+        assert transaction.account_transactions[i].account == reversed_transaction.account_transactions[i].account
         assert transaction.account_transactions[i].change == -reversed_transaction.account_transactions[i].change
 
 

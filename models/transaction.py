@@ -34,6 +34,9 @@ class Transaction(Document):
 
     @property
     def total_change(self) -> Decimal:
+        """
+        :return: Transaction money change.
+        """
         return sum([t.change for t in self.account_transactions])
 
     def is_transfer(self) -> bool:
@@ -47,6 +50,9 @@ class Transaction(Document):
                     None)
 
     def __neg__(self):
+        """
+        :return: Equivalent transaction for reverse it or object copy with values in inverse sign.
+        """
         reverse_transaction = Transaction(owner=deepcopy(self.owner),
                                            description=deepcopy(self.description),
                                            date_accomplished=deepcopy(self.date_accomplished),
@@ -61,7 +67,7 @@ class Transaction(Document):
                                                             rev_acc_transacction)
 
         for fnd_transaction in self.fund_transactions:
-            rev_fund_transaction = FundTransaction(fund=fnd_transaction,
+            rev_fund_transaction = FundTransaction(fund=fnd_transaction.fund,
                                                    change=-fnd_transaction.change)
             reverse_transaction.fund_transactions.insert(len(reverse_transaction.fund_transactions),
                                                          rev_fund_transaction)

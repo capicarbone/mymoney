@@ -63,11 +63,8 @@ class ExpenseTransaction(Transaction):
 
         assert sum([ft.change for ft in document.fund_transactions]) == document.total_change
 
-    @classmethod
-    def post_save(cls, sender, document: 'ExpenseTransaction', created: bool):
-        if created:
-            document._register_to_statement()
 
 
 signals.post_save.connect(MonthStatement.transaction_post_save, sender=ExpenseTransaction)
+signals.post_delete.connect(MonthStatement.transaction_post_delete, sender=ExpenseTransaction)
 signals.pre_save_post_validation.connect(ExpenseTransaction.pre_save_post_validation, sender=ExpenseTransaction)

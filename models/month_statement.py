@@ -7,7 +7,6 @@ from .category import TransactionCategory
 from .fund import Fund
 
 
-
 class AccountChange(mongoengine.EmbeddedDocument):
     account = mongoengine.LazyReferenceField(Account, required=True)
     income = mongoengine.DecimalField(required=True, default=Decimal(0.0))
@@ -49,6 +48,39 @@ class MonthStatement(mongoengine.Document):
 
         return search[0] if len(search) == 1 else None
 
+    def adjust(self, transaction: 'Transaction'):
+        category_change = self.get_cateogry_change(transaction.category.id)
+
+        if category_change is None:
+            category_change = CategoryChange(category=transaction.category)
+            self.categories.insert(0, category_change)
+
+        category_change.change += transaction.total_change
+
+        account = transaction.account_transactions[0].account
+        account_change = self.get_account_change(account.id)
+
+        if account_change is None:
+            account_change = AccountChange(account=account)
+            self.accounts.insert(0, account_change)
+
+        if transaction.total_change > 0:
+            account_change.income += transaction.total_change
+        else:
+            account_change.expense += transaction.total_change
+
+        for fund_transaction in transaction.fund_transactions:
+            fund_change = self.get_fund_change(fund_transaction.fund)
+
+            if fund_change is None:
+                fund_change = FundChange(fund=fund_transaction.fund)
+                self.funds.insert(0, fund_change)
+
+            if fund_transaction.change > 0:
+                fund_change.income += fund_transaction.change
+            else:
+                fund_change.expense += fund_transaction.change
+
     @classmethod
     def add_to_statement(cls, transaction: 'Transaction'):
         if transaction.is_transfer():
@@ -63,43 +95,26 @@ class MonthStatement(mongoengine.Document):
                                              month=transaction.date_accomplished.month,
                                              year=transaction.date_accomplished.year)
 
-        category_change = month_statement.get_cateogry_change(transaction.category.id)
-
-        if category_change is None:
-            category_change = CategoryChange(category=transaction.category)
-            month_statement.categories.insert(0, category_change)
-
-        category_change.change += transaction.total_change
-
-        account = transaction.account_transactions[0].account
-        account_change = month_statement.get_account_change(account.id)
-
-        if account_change is None:
-            account_change = AccountChange(account=account)
-            month_statement.accounts.insert(0, account_change)
-
-        if transaction.total_change > 0:
-            account_change.income += transaction.total_change
-        else:
-            account_change.expense += transaction.total_change
-
-        for fund_transaction in transaction.fund_transactions:
-            fund_change = month_statement.get_fund_change(fund_transaction.fund)
-
-            if fund_change is None:
-                fund_change = FundChange(fund=fund_transaction.fund)
-                month_statement.funds.insert(0, fund_change)
-
-            if fund_transaction.change > 0:
-                fund_change.income += fund_transaction.change
-            else:
-                fund_change.expense += fund_transaction.change
+        month_statement.adjust(transaction)
 
         month_statement.last_transaction_processed = transaction.id
         month_statement.save()
 
     @classmethod
+    def remove_from_statement(cls, transaction:'Transaction'):
+        month_statement = MonthStatement.objects(owner=transaction.owner,
+                                                 month=transaction.date_accomplished.month,
+                                                 year=transaction.date_accomplished.year).get()
+
+        month_statement.adjust(-transaction)
+
+        month_statement.save()
+
+    @classmethod
     def transaction_post_save(cls, sender, document: 'Transaction', created: bool):
-        if created:
+        if created and not document.is_transfer():
             cls.add_to_statement(document)
 
+    @classmethod
+    def transaction_post_delete(cls, sender, document: 'Transaction'):
+        cls.remove_from_statement(document)
