@@ -22,7 +22,7 @@ class TransactionResource(Resource):
         entity_args = parser.parse_args()
 
         parser = reqparse.RequestParser()
-        parser.add_argument('change', type=Decimal, store_missing=False)  # TODO: Add validation, must be different from 0
+        parser.add_argument('change', type=Decimal, store_missing=False)  # TODO: Add validation, must be different than 0
         change_arg = parser.parse_args()
 
         if len(entity_args) > 0:

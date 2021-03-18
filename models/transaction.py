@@ -1,13 +1,14 @@
+
+from copy import copy, deepcopy
 from decimal import Decimal
 import mongoengine
 from flask_mongoengine import Document
 import datetime
-
 from .fund_transaction import FundTransaction
-
 from models.account_transaction import AccountTransaction
 from models.category import TransactionCategory
 from models.user import User
+
 
 
 def validate_change(value: float):
@@ -44,3 +45,25 @@ class Transaction(Document):
     def get_fund_transaction(self, fund) -> FundTransaction:
         return next((fund_transaction for fund_transaction in self.fund_transactions if fund == fund_transaction.fund),
                     None)
+
+    def __neg__(self):
+        reverse_transaction = Transaction(owner=deepcopy(self.owner),
+                                           description=deepcopy(self.description),
+                                           date_accomplished=deepcopy(self.date_accomplished),
+                                           created_at=deepcopy(self.created_at),
+                                           category=deepcopy(self.category)
+                                           )
+
+        for acc_transacttion in self.account_transactions:
+            rev_acc_transacction = AccountTransaction(account=acc_transacttion.account,
+                                                      change=-acc_transacttion.change)
+            reverse_transaction.account_transactions.insert(len(reverse_transaction.account_transactions),
+                                                            rev_acc_transacction)
+
+        for fnd_transaction in self.fund_transactions:
+            rev_fund_transaction = FundTransaction(fund=fnd_transaction,
+                                                   change=-fnd_transaction.change)
+            reverse_transaction.fund_transactions.insert(len(reverse_transaction.fund_transactions),
+                                                         rev_fund_transaction)
+
+        return reverse_transaction
