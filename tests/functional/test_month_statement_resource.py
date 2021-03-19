@@ -37,3 +37,14 @@ def test_transaction_post_creates_month_statement(client, authenticated_header, 
     assert res.get_json()['_items'][0]['year'] == query_params['year']
     assert res.get_json()['_items'][0]['month'] == query_params['month']
 
+def test_month_statement_returns_empty_list(client, authenticated_header, mongodb):
+    res = client.get(resource_url,
+                     headers=authenticated_header,
+                     query_string={'year': 2000}
+                     )
+
+    assert res.status_code == 200
+    assert type(res.get_json()['_items']) is list
+    assert len(res.get_json()['_items']) == 0
+
+# TODO: Test paginattion, request just a year.
