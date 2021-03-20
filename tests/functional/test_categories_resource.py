@@ -3,7 +3,7 @@ from .fixtures import *
 
 resource_url = '/api/transactions/categories'
 
-def test_succesful_get_categories(client, authenticated_header, mongodb):
+def test_succesful_get_categories(client, authenticated_header):
     rv = client.get(resource_url, headers=authenticated_header)
 
     json_data = rv.get_json()
@@ -14,7 +14,7 @@ def test_succesful_get_categories(client, authenticated_header, mongodb):
         assert 'name' in e
 
 
-def test_succesful_post_category(client, authenticated_header, mongodb):
+def test_succesful_post_category(client, authenticated_header):
 
     category_data = {
         'name': 'New category',
@@ -37,7 +37,7 @@ def test_succesful_post_category(client, authenticated_header, mongodb):
     assert rv.status_code == 200
     assert 'id' in rv.get_json()
 
-def test_invalid_post_category(client, authenticated_header, mongodb):
+def test_invalid_post_category(client, authenticated_header):
     category_data = {
         'kind': 'income'
     }

@@ -3,7 +3,7 @@ from .fixtures import *
 
 resource_url = '/api/transaction/fund-transfer'
 
-def test_post_valid_fund_transfer(client, authenticated_header, mongodb):
+def test_post_valid_fund_transfer(client, authenticated_header):
 
     transfer_data = {
         'from': '5ec741e6192cf1720a170378',
@@ -15,7 +15,7 @@ def test_post_valid_fund_transfer(client, authenticated_header, mongodb):
 
     assert rv.status_code == 200
 
-def test_post_invalid_fund_transfer(client, authenticated_header, mongodb):
+def test_post_invalid_fund_transfer(client, authenticated_header):
     transfer_data = {
         'from': '5ec741e6192cf1720a170378',
         'to': '5ec741fc192cf1720a170379',

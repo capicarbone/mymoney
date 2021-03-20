@@ -3,7 +3,7 @@ from .fixtures import *
 
 resource_url = '/api/reports/month_statements'
 
-def test_transaction_post_creates_month_statement(client, authenticated_header, mongodb):
+def test_transaction_post_creates_month_statement(client, authenticated_header):
 
     query_params = {'year': 2020, 'month': 2}
 
@@ -37,7 +37,7 @@ def test_transaction_post_creates_month_statement(client, authenticated_header, 
     assert res.get_json()['_items'][0]['year'] == query_params['year']
     assert res.get_json()['_items'][0]['month'] == query_params['month']
 
-def test_month_statement_returns_empty_list(client, authenticated_header, mongodb):
+def test_month_statement_returns_empty_list(client, authenticated_header):
     res = client.get(resource_url,
                      headers=authenticated_header,
                      query_string={'year': 2000}

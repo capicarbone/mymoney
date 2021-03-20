@@ -3,7 +3,7 @@ from .fixtures import *
 
 resource_url = '/api/accounts'
 
-def test_get_accounts_as_success(client, authenticated_header, mongodb):
+def test_get_accounts_as_success(client, authenticated_header):
     rv = client.get(resource_url, headers=authenticated_header)
     assert rv.status_code == 200
 
@@ -16,21 +16,21 @@ def test_get_accounts_as_success(client, authenticated_header, mongodb):
         assert 'balance' in e
 
 
-def test_post_account_as_success(client, authenticated_header, mongodb):
+def test_post_account_as_success(client, authenticated_header):
     rv = client.post(resource_url, headers=authenticated_header, json={'name': 'New Account'})
     assert rv.status_code == 200
 
     json_data = rv.get_json()
     assert 'id' in json_data
 
-def test_post_account_invalid(client, authenticated_header, mongodb):
+def test_post_account_invalid(client, authenticated_header):
     rv = client.post(resource_url, headers=authenticated_header, json={})
     assert rv.status_code == 400
 
     rv = client.post(resource_url, headers=authenticated_header, json={'name': ""})
     assert rv.status_code == 400
 
-def test_account_unauthorized_request(client, mongodb):
+def test_account_unauthorized_request(client):
     rv = client.get(resource_url)
     assert rv.status_code == 401
 

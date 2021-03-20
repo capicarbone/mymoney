@@ -5,7 +5,7 @@ import mongoengine
 
 from models.user import User
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def client(pytestconfig):
     # load testing config
     settings = {
@@ -19,6 +19,6 @@ def client(pytestconfig):
 
 
 @pytest.fixture()
-def authenticated_header():
+def authenticated_header(mongodb):
     user = User.objects.first()
     return {'Authorization': 'Bearer %s' % (user.auth_token)}

@@ -2,7 +2,7 @@ import base64
 from .fixtures import *
 
 
-def test_valid_login(client, mongodb):
+def test_valid_login(client):
     credentials_base64 = base64.urlsafe_b64encode(b"cpinelly@gmail.com:555555")
 
     header = {'Authorization': 'Basic %s' % credentials_base64.decode("utf-8")}
@@ -14,7 +14,7 @@ def test_valid_login(client, mongodb):
     assert 'token' in rv.get_json()
 
 
-def test_invalid_login(client, mongodb):
+def test_invalid_login(client):
     credentials_base64 = base64.urlsafe_b64encode(b"c@gmail.com:555555")
 
     header = {'Authorization': 'Basic %s' % credentials_base64.decode("utf-8")}
