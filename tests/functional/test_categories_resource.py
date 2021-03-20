@@ -1,7 +1,6 @@
 
-from .fixtures import *
-
 resource_url = '/api/transactions/categories'
+
 
 def test_succesful_get_categories(client, authenticated_header):
     rv = client.get(resource_url, headers=authenticated_header)
@@ -36,6 +35,7 @@ def test_succesful_post_category(client, authenticated_header):
 
     assert rv.status_code == 200
     assert 'id' in rv.get_json()
+
 
 def test_invalid_post_category(client, authenticated_header):
     category_data = {

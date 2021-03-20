@@ -1,7 +1,6 @@
 
-from .fixtures import *
-
 resource_url = '/api/accounts'
+
 
 def test_get_accounts_as_success(client, authenticated_header):
     rv = client.get(resource_url, headers=authenticated_header)

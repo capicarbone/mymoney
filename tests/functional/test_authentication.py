@@ -1,5 +1,4 @@
 import base64
-from .fixtures import *
 
 
 def test_valid_login(client):

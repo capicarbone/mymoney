@@ -1,7 +1,6 @@
 
 import mymoney
 import pytest
-import mongoengine
 
 from models.user import User
 

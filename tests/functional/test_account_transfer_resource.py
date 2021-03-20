@@ -1,6 +1,4 @@
 
-from .fixtures import *
-
 resource_url = '/api/transaction/account-transfer'
 
 def test_successful_post_account_transfer(client, authenticated_header):

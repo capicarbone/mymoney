@@ -1,7 +1,6 @@
 
-from .fixtures import *
-
 resource_url = '/api/transaction/fund-transfer'
+
 
 def test_post_valid_fund_transfer(client, authenticated_header):
 

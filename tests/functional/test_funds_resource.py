@@ -1,7 +1,6 @@
 
-from .fixtures import *
-
 resource_url = '/api/funds'
+
 
 def test_succesful_fund_get(client, authenticated_header):
     rv = client.get(resource_url, headers=authenticated_header)
@@ -16,6 +15,7 @@ def test_succesful_fund_get(client, authenticated_header):
         assert 'percentage_assignment' in e
         assert 'balance' in e
 
+
 def test_succesful_fund_post(client, authenticated_header):
     fund_data = {
         'name': 'New Fund',
@@ -29,6 +29,7 @@ def test_succesful_fund_post(client, authenticated_header):
 
     assert rv.status_code == 200
     assert 'id' in rv.get_json()
+
 
 def test_invalid_fund_post(client, authenticated_header):
     fund_data = {
