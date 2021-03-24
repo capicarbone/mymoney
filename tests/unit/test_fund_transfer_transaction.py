@@ -1,5 +1,4 @@
 
-from .fixtures import *
 from models.fund import Fund
 from models.fund_transfer_transaction import FundTransferTransaction
 from datetime import date

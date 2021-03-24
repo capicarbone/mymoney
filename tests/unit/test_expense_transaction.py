@@ -1,5 +1,4 @@
 
-from .fixtures import *
 import pytest
 import mongoengine
 from decimal import Decimal

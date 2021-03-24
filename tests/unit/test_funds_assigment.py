@@ -1,5 +1,4 @@
 from models.category import TransactionCategory
-from .fixtures import *
 import pytest
 from decimal import Decimal
 from utils import fund_utils

@@ -3,7 +3,7 @@ import datetime
 import mongoengine
 from decimal import Decimal
 import pytest
-from .fixtures import *
+from .conftest import *
 from models.fund import Fund
 from models.income_transaction import IncomeTransaction
 from models.category import TransactionCategory

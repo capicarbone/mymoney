@@ -1,4 +1,3 @@
-from .fixtures import *
 from models.user import User
 from models.fund import Fund
 from werkzeug.security import generate_password_hash

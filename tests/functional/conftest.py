@@ -1,10 +1,10 @@
 
 import mymoney
 import pytest
-
+import mongoengine
 from models.user import User
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def client(pytestconfig):
     # load testing config
     settings = {
@@ -14,7 +14,8 @@ def client(pytestconfig):
         },
         'TESTING': True
     }
-    return mymoney.create_app(settings).test_client()
+    yield mymoney.create_app(settings).test_client()
+    mongoengine.disconnect()
 
 
 @pytest.fixture()

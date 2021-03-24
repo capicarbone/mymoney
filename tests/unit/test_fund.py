@@ -1,9 +1,10 @@
 
+import pytest
+import mongoengine
 from models.fund import Fund
+from models.user import User
 from decimal import Decimal
 from datetime import datetime
-from .fixtures import *
-
 
 def test_inser_with_invalid_percentage_assignment(db, mongodb, user):
     attr = {'name': 'Test Fund','percentage_assignment': -1, 'owner': user }

@@ -1,5 +1,4 @@
 
-from .fixtures import *
 from decimal import Decimal
 from models.accounts_transfer_transaction import AccountsTransferTransaction
 from models.account import Account

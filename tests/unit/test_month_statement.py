@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from models.transaction import Transaction
-from .fixtures import *
+from .conftest import *
 import datetime
 import mongoengine
 import pytest

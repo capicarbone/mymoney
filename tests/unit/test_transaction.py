@@ -3,7 +3,7 @@ from models.transaction import Transaction
 from models.account_transaction import AccountTransaction
 from models.fund_transaction import FundTransaction
 from datetime import date
-from .fixtures import *
+from .conftest import *
 
 def test_minus_transaction_retrieve_reverse_transaction(db, mongodb):
     transaction = Transaction(owner="60528afc743bfda62d489ff0",
