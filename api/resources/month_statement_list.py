@@ -11,14 +11,9 @@ month_statement_fields = {
 }
 
 page = {
-    '_items': fields.List(fields.Nested(month_statement_fields), attribute='items')
+    '_items': fields.List(fields.Nested(month_statement_fields), attribute='items'),
+    '_count': fields.Integer(attribute='count')
 }
-
-# class Page:
-#     statements = None
-#
-#     def __init__(self, statements):
-#         self.statements = statements
 
 class MonthStatementListResource(Resource):
     method_decorators = [auth.login_required]
@@ -30,9 +25,14 @@ class MonthStatementListResource(Resource):
         parser.add_argument('month', type=int)
         args = parser.parse_args()
 
+        args['owner'] = auth.current_user()
         statements = MonthStatement.objects(**args).order_by('-year', '-month')
 
-        Page = namedtuple('Page', ['items'])
-        return Page(items=list(statements))._asdict()
+        Page = namedtuple('Page', ['items', 'count'])
+
+        return Page(
+            items=statements.all(),
+            count=statements.count()
+        )._asdict()
 
 
