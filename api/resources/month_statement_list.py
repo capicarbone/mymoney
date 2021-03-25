@@ -12,7 +12,8 @@ month_statement_fields = {
 
 page = {
     '_items': fields.List(fields.Nested(month_statement_fields), attribute='items'),
-    '_count': fields.Integer(attribute='count')
+    '_count': fields.Integer(attribute='count'),
+    '_page': fields.Integer(attribute='page')
 }
 
 class MonthStatementListResource(Resource):
@@ -21,18 +22,29 @@ class MonthStatementListResource(Resource):
     @marshal_with(page)
     def get(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('year', type=int)
-        parser.add_argument('month', type=int)
-        args = parser.parse_args()
+        parser.add_argument('year', type=int, store_missing=False)
+        parser.add_argument('month', type=int, store_missing=False)
+        query_args = parser.parse_args()
+        query_args['owner'] = auth.current_user()
 
-        args['owner'] = auth.current_user()
-        statements = MonthStatement.objects(**args).order_by('-year', '-month')
+        parser = reqparse.RequestParser()
+        parser.add_argument('page', type=int, default=0)
+        parser.add_argument('items_per_page', type=int, default=12)
+        pagination_args = parser.parse_args()
+        items_per_page = pagination_args['items_per_page']
+        page = pagination_args['page']
 
-        Page = namedtuple('Page', ['items', 'count'])
+        statements = MonthStatement.objects(**query_args)\
+            .order_by('-year', '-month')\
+            .limit(items_per_page)\
+            .skip(page*items_per_page)
+
+        Page = namedtuple('Page', ['items', 'count', 'page'])
 
         return Page(
             items=statements.all(),
-            count=statements.count()
+            count=statements.count(),
+            page=page
         )._asdict()
 
 

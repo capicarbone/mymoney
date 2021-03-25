@@ -25,7 +25,7 @@ class FundChange(mongoengine.EmbeddedDocument):
 
 
 class MonthStatement(mongoengine.Document):
-    month = mongoengine.IntField(required=True, choices=list(range(1, 12)))
+    month = mongoengine.IntField(required=True, choices=list(range(1, 13)))
     year = mongoengine.IntField(required=True)
     owner = mongoengine.LazyReferenceField(User, required=True)
     accounts = mongoengine.EmbeddedDocumentListField(AccountChange)

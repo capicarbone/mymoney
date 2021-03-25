@@ -4,12 +4,64 @@ import pytest
 resource_url = '/api/reports/month_statements'
 
 @pytest.fixture()
-def loaded_month_transactions(client,
+def load_month_transactions(client,
                               authenticated_header,
                               accounts,
                               income_category,
                               expense_categories):
-    return None
+    """
+
+    :param client:
+    :param authenticated_header:
+    :param accounts:
+    :param income_category:
+    :param expense_categories:
+    :return: Number of month statements created.
+    """
+    current_year = 2017
+    current_month = 8
+    end_year = 2020
+    total_statements = 0
+
+    while current_year <= end_year:
+        transactions_data = []
+        transactions_data.insert(0, {
+            'change': 2000,
+            'date_accomplished': '%d-%d-01' % (current_year, current_month + 1),
+            'account_id': str(accounts[0].id),
+            'category': str(income_category.id)
+        })
+
+        transactions_data.insert(0, {
+            'change': -700,
+            'date_accomplished': '%d-%d-01' % (current_year, current_month + 1),
+            'account_id': str(accounts[0].id),
+            'category': str(expense_categories[0].id)
+        })
+
+        transactions_data.insert(0, {
+            'change': -900,
+            'date_accomplished': '%d-%d-01' % (current_year, current_month + 1),
+            'account_id': str(accounts[0].id),
+            'category': str(expense_categories[1].id)
+        })
+
+        for transaction_data in transactions_data:
+            #print(transaction_data)
+            res = client.post('/api/transactions',
+                        headers=authenticated_header,
+                        json=transaction_data)
+
+            assert res.status_code == 200
+
+        current_year += int((current_month + 1) / 12)
+        current_month = (current_month + 1) % 12
+
+        total_statements += 1
+
+    return total_statements
+
+
 
 def test_transaction_post_creates_month_statement(client,
                                                   authenticated_header,
@@ -49,8 +101,31 @@ def test_transaction_post_creates_month_statement(client,
     assert res.get_json()['_items'][0]['year'] == query_params['year']
     assert res.get_json()['_items'][0]['month'] == query_params['month']
 
-def test_get_month_statements_list_pagination(client, authenticated_header, loaded_month_transactions):
-    assert True == True
+def test_get_month_statements_list_pagination(client, authenticated_header, load_month_transactions):
+
+    items_per_page = int(load_month_transactions / 4)
+
+    res = client.get(resource_url,
+                     headers=authenticated_header,
+                     query_string={'items_per_page': items_per_page})
+
+    assert res.status_code == 200
+    data = res.get_json()
+    assert type(data['_items']) is list
+    assert data['_page'] == 0
+    assert len(data['_items']) == items_per_page
+    assert data['_count'] == load_month_transactions
+
+    res = client.get(resource_url,
+                     headers=authenticated_header,
+                     query_string={'items_per_page': items_per_page,
+                                   'page': 1})
+
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data['_page'] == 1
+    assert len(data['_items']) == items_per_page
+
 
 def test_month_statement_returns_empty_list(client, authenticated_header):
     res = client.get(resource_url,
@@ -61,5 +136,5 @@ def test_month_statement_returns_empty_list(client, authenticated_header):
     assert res.status_code == 200
     assert type(res.get_json()['_items']) is list
     assert len(res.get_json()['_items']) == 0
+    assert res.get_json()['_count'] == 0
 
-# TODO: Test paginattion, request just a year.

@@ -15,4 +15,4 @@ def accounts(mongodb):
 
 @pytest.fixture()
 def expense_categories(mongodb):
-    return Account.objects(owner=owner_id, kind="expense").all()
+    return TransactionCategory.objects(owner=owner_id, kind="expense").all()
