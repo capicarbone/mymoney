@@ -2,12 +2,32 @@
 from collections import namedtuple
 from api.authentication import auth
 from flask_restful import Resource, marshal_with, reqparse, fields
-from models.month_statement import MonthStatement
+from models.month_statement import MonthStatement, AccountChange
+
+account_change = {
+    'account_id': fields.String(attribute='account.id'),
+    'expense': fields.Float,
+    'income': fields.Float
+}
+
+fund_change = {
+    'fund_id': fields.String(attribute='fund.id'),
+    'expense': fields.Float,
+    'income': fields.Float
+}
+
+category_change = {
+    'category_id': fields.String(attribute='category.id'),
+    'change': fields.Float
+}
 
 month_statement_fields = {
     '_id': fields.String(attribute='id'),
     'month': fields.Integer,
-    'year': fields.Integer
+    'year': fields.Integer,
+    'accounts': fields.List(fields.Nested(account_change)),
+    'funds': fields.List(fields.Nested(fund_change)),
+    'categories': fields.List(fields.Nested(category_change))
 }
 
 page = {
