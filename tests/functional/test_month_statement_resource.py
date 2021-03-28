@@ -3,6 +3,47 @@ import pytest
 
 resource_url = '/api/reports/month_statements'
 
+def is_valid_account_change(account_change):
+    expected_fields = ['account_id', 'income', 'expense']
+
+    for field in expected_fields:
+        assert field in account_change
+
+    return True
+
+def is_valid_fund_change(fund_change):
+    expected_fields = ['fund_id', 'income', 'expense']
+
+    for field in expected_fields:
+        assert field in fund_change
+
+    return True
+
+def is_valid_category_change(category_change):
+    expected_fields = ['category_id', 'change']
+
+    for field in expected_fields:
+        assert field in category_change
+
+    return True
+
+def is_valid_month_statement(entity):
+
+    expected_fields = ['month', 'year', 'accounts', 'funds', 'categories']
+
+    for field in expected_fields:
+        assert field in entity
+
+    assert type(entity['accounts']) is list
+    assert type(entity['funds']) is list
+    assert type(entity['categories']) is list
+
+    assert is_valid_account_change(entity['accounts'][0])
+    assert is_valid_fund_change(entity['funds'][0])
+    assert is_valid_category_change(entity['categories'][0])
+
+    return True
+
 @pytest.fixture()
 def load_month_transactions(client,
                               authenticated_header,
@@ -95,11 +136,15 @@ def test_transaction_post_creates_month_statement(client,
                     query_string=query_params)
 
     assert res.status_code == 200
+
     assert type(res.get_json()['_items']) is list
     assert len(res.get_json()['_items']) == 1
     assert res.get_json()['_count'] == 1
-    assert res.get_json()['_items'][0]['year'] == query_params['year']
-    assert res.get_json()['_items'][0]['month'] == query_params['month']
+    first_item = res.get_json()['_items'][0]
+    assert is_valid_month_statement(first_item)
+    assert first_item['year'] == query_params['year']
+    assert first_item['month'] == query_params['month']
+
 
 def test_get_month_statements_list_pagination(client, authenticated_header, load_month_transactions):
 
