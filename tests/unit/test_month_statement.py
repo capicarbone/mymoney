@@ -1,7 +1,9 @@
 from decimal import Decimal
 
+from typing import List
+
 from models.transaction import Transaction
-from .conftest import *
+
 import datetime
 import mongoengine
 import pytest
@@ -12,7 +14,58 @@ from models.expense_transaction import ExpenseTransaction
 from models.month_statement import MonthStatement
 
 
-@pytest.mark.parametrize(('change',), [(Decimal("-300.00"),), (Decimal("300.00"),), (Decimal("2000.21"),), (Decimal("-1.23"),)])
+
+def not_repeated(items) -> bool:
+    return len(set(items)) == len(items)
+
+
+def is_consistent(month_statement: MonthStatement):
+    accounts_total_change = sum([acc.income + acc.expense for acc in month_statement.accounts])
+    funds_total_change = sum([fnd.income + fnd.expense for fnd in month_statement.funds])
+    categories_total_change = sum([cat.change for cat in month_statement.categories])
+
+    accounts_not_repeated = not_repeated(
+        [str(account_change.account.id) for account_change in month_statement.accounts]) is True
+    categories_not_repeated = not_repeated(
+        [str(category_change.category.id) for category_change in month_statement.categories]) is True
+    funds_not_repeated = not_repeated([str(fund_change.fund.id) for fund_change in month_statement.funds]) is True
+
+    return accounts_total_change == funds_total_change == categories_total_change and accounts_not_repeated and funds_not_repeated and categories_not_repeated
+
+
+@pytest.fixture(params=[
+    ([Decimal("1000.00"), Decimal("300"), Decimal("500")]),
+    ([Decimal("-222.00"), Decimal("400"), Decimal("-500")]),
+    ([Decimal("-211.12"), Decimal("12.1"), Decimal("500.00"), Decimal("451.00"), Decimal("723.99")]),
+])
+def one_month_transactions(request, db, mongodb, user):
+    account = Account.objects(owner=user)[0]
+
+    income_category = TransactionCategory.objects(kind="income")[0]
+    expense_category = TransactionCategory.objects(kind="expense")[0]
+
+    transaction_date = datetime.date(2021, 2, 1)
+
+    transactions = []
+
+    for change in request.param:
+        if change > 0:
+            transaction = IncomeTransaction(owner=user, account_id=account.id, change=change,
+                                            category=income_category,
+                                            date_accomplished=transaction_date)
+        else:
+            transaction = ExpenseTransaction(owner=user, account_id=account.id, change=change,
+                                             category=expense_category,
+                                             date_accomplished=transaction_date)
+
+        transaction.save()
+        transactions.append(transaction)
+
+    return transactions
+
+
+@pytest.mark.parametrize(('change',),
+                         [(Decimal("-300.00"),), (Decimal("300.00"),), (Decimal("2000.21"),), (Decimal("-1.23"),)])
 def test_new_transaction_generates_new_month_statement(db, mongodb, user, change):
     account = Account.objects(owner=user)[0]
 
@@ -82,18 +135,18 @@ def test_new_transaction_updates_existing_month_statement(db, mongodb, user, cha
 
         if change > 0:
             transaction = IncomeTransaction(owner=user, account_id=account.id, change=change,
-                               category=income_category,
-                               date_accomplished=transaction_date)
+                                            category=income_category,
+                                            date_accomplished=transaction_date)
         else:
             transaction = ExpenseTransaction(owner=user, account_id=account.id, change=change,
-                               category=expense_category,
-                               date_accomplished=transaction_date)
+                                             category=expense_category,
+                                             date_accomplished=transaction_date)
 
         transaction.save()
 
     statements = MonthStatement.objects(owner=user,
-                                       month=transaction_date.month,
-                                       year=transaction_date.year).all()
+                                        month=transaction_date.month,
+                                        year=transaction_date.year).all()
     assert len(statements) == 1
     statement = statements[0]
 
@@ -117,55 +170,38 @@ def test_new_transaction_updates_existing_month_statement(db, mongodb, user, cha
 
     # TODO: Collect every fund transacion and validate against fund changes.
 
-@pytest.mark.parametrize(('changes'), [
-    ([Decimal("-100.00"), Decimal("300"), Decimal("500")]),
-    ([Decimal("-222.00"), Decimal("400"), Decimal("-500")]),
-    ([Decimal("-211.12"), Decimal("12.1"), Decimal("500.00"), Decimal("451.00"), Decimal("723.99")]),
-])
-def test_removed_transaction_changes_month_statement(db, user, mongodb, changes):
-    account = Account.objects(owner=user)[0]
 
-    income_category = TransactionCategory.objects(kind="income")[0]
-    expense_category = TransactionCategory.objects(kind="expense")[0]
+def test_months_statements_consistency(user, one_month_transactions):
+    transaction_date = one_month_transactions[0].date_accomplished
+    expected_total_change = sum([t.total_change for t in one_month_transactions])
+    statement = MonthStatement.objects(month=transaction_date.month,
+                                       year=transaction_date.year,
+                                       owner=user).get()
 
-    transaction_date = datetime.date(2021, 2, 12)
+    assert is_consistent(statement) is True
+    assert expected_total_change == statement.total_change
 
-    transactions_ids = []
-    expected_total_change = Decimal("0.0")
 
-    for change in changes:
+def test_removed_transaction_changes_month_statement(user, one_month_transactions: List[MonthStatement]):
 
-        if change > 0:
-            transaction = IncomeTransaction(owner=user, account_id=account.id, change=change,
-                               category=income_category,
-                               date_accomplished=transaction_date)
-        else:
-            transaction = ExpenseTransaction(owner=user, account_id=account.id, change=change,
-                               category=expense_category,
-                               date_accomplished=transaction_date)
+    transaction_date = one_month_transactions[0].date_accomplished
 
-        transaction.save()
-        transactions_ids.append(transaction.id)
-        expected_total_change += change
+    expected_total_change = sum([t.total_change for t in one_month_transactions])
 
-    month_statement_query =MonthStatement.objects(month=transaction_date.month,
-                                             year=transaction_date.year,
-                                             owner=user
-                                             )
+    month_statement_query = MonthStatement.objects(month=transaction_date.month,
+                                                   year=transaction_date.year,
+                                                   owner=user
+                                                   )
 
-    for transaction_id in transactions_ids:
-        transaction = Transaction.objects(id=transaction_id).get()
+    for transaction in one_month_transactions:
         total_change = transaction.total_change
         transaction.delete()
 
         month_statement = month_statement_query.get()
 
-        accounts_total_change = sum([acc.income + acc.expense for acc in month_statement.accounts])
-        funds_total_change = sum([fnd.income + fnd.expense for fnd in month_statement.funds])
-        categories_total_change = sum([cat.change for cat in month_statement.categories])
-
         expected_total_change -= total_change
-        assert accounts_total_change == expected_total_change
-        assert funds_total_change == expected_total_change
-        assert categories_total_change == expected_total_change
 
+        assert is_consistent(month_statement)
+        assert month_statement.total_change == expected_total_change
+
+    pytest.set_trace()
