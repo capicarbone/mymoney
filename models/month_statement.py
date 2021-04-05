@@ -33,6 +33,10 @@ class MonthStatement(mongoengine.Document):
     funds = mongoengine.EmbeddedDocumentListField(FundChange)
     last_transaction_processed = mongoengine.LazyReferenceField('Transaction', required=True)
 
+    @property
+    def total_change(self):
+        return sum([acc.income + acc.expense for acc in self.accounts])
+
     def get_cateogry_change(self, category_id: str):
         search = [cat for cat in self.categories if cat.category.id == category_id]
 
@@ -70,7 +74,7 @@ class MonthStatement(mongoengine.Document):
             account_change.expense += transaction.total_change
 
         for fund_transaction in transaction.fund_transactions:
-            fund_change = self.get_fund_change(fund_transaction.fund)
+            fund_change = self.get_fund_change(fund_transaction.fund.id)
 
             if fund_change is None:
                 fund_change = FundChange(fund=fund_transaction.fund)
@@ -118,3 +122,4 @@ class MonthStatement(mongoengine.Document):
     @classmethod
     def transaction_post_delete(cls, sender, document: 'Transaction'):
         cls.remove_from_statement(document)
+
