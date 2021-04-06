@@ -14,7 +14,6 @@ from models.expense_transaction import ExpenseTransaction
 from models.month_statement import MonthStatement
 
 
-
 def not_repeated(items) -> bool:
     return len(set(items)) == len(items)
 
@@ -36,7 +35,7 @@ def is_consistent(month_statement: MonthStatement):
 @pytest.fixture(params=[
     ([Decimal("1000.00"), Decimal("300"), Decimal("500")]),
     ([Decimal("-222.00"), Decimal("400"), Decimal("-500")]),
-    ([Decimal("-211.12"), Decimal("12.1"), Decimal("500.00"), Decimal("451.00"), Decimal("723.99")]),
+    ([Decimal("-211.12"), Decimal("12.1"), Decimal("500.00"), Decimal("-451.00"), Decimal("723.99")]),
 ])
 def one_month_transactions(request, db, mongodb, user):
     account = Account.objects(owner=user)[0]
@@ -97,6 +96,7 @@ def test_new_transaction_generates_new_month_statement(db, mongodb, user, change
     assert len(statement.categories) == 1
     assert len(statement.accounts) == 1
     assert len(statement.funds) > 0
+    assert is_consistent(statement) is True
 
     assert statement.categories[0].change == change
 
@@ -183,7 +183,6 @@ def test_months_statements_consistency(user, one_month_transactions):
 
 
 def test_removed_transaction_changes_month_statement(user, one_month_transactions: List[MonthStatement]):
-
     transaction_date = one_month_transactions[0].date_accomplished
 
     expected_total_change = sum([t.total_change for t in one_month_transactions])
@@ -194,13 +193,28 @@ def test_removed_transaction_changes_month_statement(user, one_month_transaction
                                                    )
 
     for transaction in one_month_transactions:
-        tr = Transaction.objects(id=transaction.id).get()  # Getting a transaction instance instance a specialization
+        initial_month_statement: MonthStatement = month_statement_query.get()
+
+        tr: Transaction = Transaction.objects(
+            id=transaction.id).get()  # Getting a transaction instance instead of a specialization
         total_change = tr.total_change
         tr.delete()
 
-        month_statement = month_statement_query.get()
+        month_statement: MonthStatement = month_statement_query.get()
 
         expected_total_change -= total_change
 
+        tr_account_id = tr.account_transactions[0].account.id
+
         assert is_consistent(month_statement)
+        if tr.is_income():
+            assert month_statement.get_account_change(
+                tr_account_id).income == initial_month_statement.get_account_change(tr_account_id).income - \
+                   tr.account_transactions[0].change
+
+        if tr.is_expense():
+            assert month_statement.accounts[0].expense == initial_month_statement.get_account_change(
+                tr_account_id).expense - \
+                   tr.account_transactions[0].change
+
         assert month_statement.total_change == expected_total_change

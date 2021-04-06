@@ -7,22 +7,40 @@ from .category import TransactionCategory
 from .fund import Fund
 
 
-class AccountChange(mongoengine.EmbeddedDocument):
+class EntityChange(mongoengine.EmbeddedDocument):
+    income = mongoengine.DecimalField(required=True, default=Decimal(0.0))  # Validate always positive
+    expense = mongoengine.DecimalField(required=True, default=Decimal(0.0)) # validate always negative
+
+    meta = {'allow_inheritance': True}
+
+    def apply(self, change: Decimal, reverse=False):
+        if reverse:
+            if change > 0:
+                self.income -= change
+            else:
+                self.expense -= change
+        else:
+            if change > 0:
+                self.income += change
+            else:
+                self.expense += change
+
+    @property
+    def change(self):
+        return self.income + self.expense
+
+
+class AccountChange(EntityChange):
     account = mongoengine.LazyReferenceField(Account, required=True)
-    income = mongoengine.DecimalField(required=True, default=Decimal(0.0))
-    expense = mongoengine.DecimalField(required=True, default=Decimal(0.0))
 
 
-class CategoryChange(mongoengine.EmbeddedDocument):
+class CategoryChange(EntityChange):
     category = mongoengine.LazyReferenceField(TransactionCategory, required=True)
-    change = mongoengine.DecimalField(required=True, default=Decimal(0.0))
 
 
-class FundChange(mongoengine.EmbeddedDocument):
+
+class FundChange(EntityChange):
     fund = mongoengine.LazyReferenceField(Fund, required=True)
-    income = mongoengine.DecimalField(required=True, default=Decimal(0.0))
-    expense = mongoengine.DecimalField(required=True, default=Decimal(0.0))
-
 
 class MonthStatement(mongoengine.Document):
     month = mongoengine.IntField(required=True, choices=list(range(1, 13)))
@@ -34,32 +52,32 @@ class MonthStatement(mongoengine.Document):
     last_transaction_processed = mongoengine.LazyReferenceField('Transaction', required=True)
 
     @property
-    def total_change(self):
+    def total_change(self) -> Decimal:
         return sum([acc.income + acc.expense for acc in self.accounts])
 
-    def get_cateogry_change(self, category_id: str):
+    def get_cateogry_change(self, category_id: str) -> CategoryChange:
         search = [cat for cat in self.categories if cat.category.id == category_id]
 
         return search[0] if len(search) == 1 else None
 
-    def get_account_change(self, account_id: str):
+    def get_account_change(self, account_id: str) -> AccountChange:
         search = [acc for acc in self.accounts if acc.account.id == account_id]
 
         return search[0] if len(search) == 1 else None
 
-    def get_fund_change(self, fund_id: str):
+    def get_fund_change(self, fund_id: str) -> FundChange:
         search = [fnd for fnd in self.funds if fnd.fund.id == fund_id]
 
         return search[0] if len(search) == 1 else None
 
-    def adjust(self, transaction: 'Transaction'):
+    def adjust(self, transaction: 'Transaction', reverse=False):
         category_change = self.get_cateogry_change(transaction.category.id)
 
         if category_change is None:
             category_change = CategoryChange(category=transaction.category)
             self.categories.insert(0, category_change)
 
-        category_change.change += transaction.total_change
+        category_change.apply(transaction.total_change, reverse)
 
         account = transaction.account_transactions[0].account
         account_change = self.get_account_change(account.id)
@@ -68,10 +86,7 @@ class MonthStatement(mongoengine.Document):
             account_change = AccountChange(account=account)
             self.accounts.insert(0, account_change)
 
-        if transaction.total_change > 0:
-            account_change.income += transaction.total_change
-        else:
-            account_change.expense += transaction.total_change
+        account_change.apply(transaction.total_change, reverse)
 
         for fund_transaction in transaction.fund_transactions:
             fund_change = self.get_fund_change(fund_transaction.fund.id)
@@ -80,10 +95,7 @@ class MonthStatement(mongoengine.Document):
                 fund_change = FundChange(fund=fund_transaction.fund)
                 self.funds.insert(0, fund_change)
 
-            if fund_transaction.change > 0:
-                fund_change.income += fund_transaction.change
-            else:
-                fund_change.expense += fund_transaction.change
+            fund_change.apply(fund_transaction.change, reverse)
 
     @classmethod
     def add_to_statement(cls, transaction: 'Transaction'):
@@ -105,12 +117,12 @@ class MonthStatement(mongoengine.Document):
         month_statement.save()
 
     @classmethod
-    def remove_from_statement(cls, transaction:'Transaction'):
+    def remove_from_statement(cls, transaction: 'Transaction'):
         month_statement = MonthStatement.objects(owner=transaction.owner,
                                                  month=transaction.date_accomplished.month,
                                                  year=transaction.date_accomplished.year).get()
 
-        month_statement.adjust(-transaction)
+        month_statement.adjust(transaction, reverse=True)
 
         month_statement.save()
 
@@ -122,4 +134,3 @@ class MonthStatement(mongoengine.Document):
     @classmethod
     def transaction_post_delete(cls, sender, document: 'Transaction'):
         cls.remove_from_statement(document)
-

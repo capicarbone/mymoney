@@ -46,6 +46,9 @@ class Transaction(Document):
     def is_income(self) -> bool:
         return self.total_change > 0
 
+    def is_expense(self) -> bool:
+        return not self.is_income() and not self.is_transfer()
+
     def get_fund_transaction(self, fund) -> FundTransaction:
         return next((fund_transaction for fund_transaction in self.fund_transactions if fund == fund_transaction.fund),
                     None)
