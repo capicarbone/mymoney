@@ -194,8 +194,9 @@ def test_removed_transaction_changes_month_statement(user, one_month_transaction
                                                    )
 
     for transaction in one_month_transactions:
-        total_change = transaction.total_change
-        transaction.delete()
+        tr = Transaction.objects(id=transaction.id).get()  # Getting a transaction instance instance a specialization
+        total_change = tr.total_change
+        tr.delete()
 
         month_statement = month_statement_query.get()
 
@@ -203,5 +204,3 @@ def test_removed_transaction_changes_month_statement(user, one_month_transaction
 
         assert is_consistent(month_statement)
         assert month_statement.total_change == expected_total_change
-
-    pytest.set_trace()
