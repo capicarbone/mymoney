@@ -7,9 +7,19 @@ from .category import TransactionCategory
 from .fund import Fund
 
 
+def is_positive(x):
+    if x < 0:
+        raise mongoengine.ValidationError('income can not be negative')
+
+
+def is_negative(x):
+    if x > 0:
+        raise mongoengine.ValidationError('expense can not be positive')
+
+
 class EntityChange(mongoengine.EmbeddedDocument):
-    income = mongoengine.DecimalField(required=True, default=Decimal(0.0))  # Validate always positive
-    expense = mongoengine.DecimalField(required=True, default=Decimal(0.0)) # validate always negative
+    income = mongoengine.DecimalField(required=True, default=Decimal(0.0), validation=is_positive)
+    expense = mongoengine.DecimalField(required=True, default=Decimal(0.0), validation=is_negative)
 
     meta = {'allow_inheritance': True}
 
