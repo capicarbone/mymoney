@@ -1,7 +1,10 @@
+from decimal import Decimal
 
 import pytest
+import datetime
 
 resource_url = '/api/reports/month_statements'
+
 
 def is_valid_account_change(account_change):
     expected_fields = ['account_id', 'income', 'expense']
@@ -11,6 +14,7 @@ def is_valid_account_change(account_change):
 
     return True
 
+
 def is_valid_fund_change(fund_change):
     expected_fields = ['fund_id', 'income', 'expense']
 
@@ -18,6 +22,7 @@ def is_valid_fund_change(fund_change):
         assert field in fund_change
 
     return True
+
 
 def is_valid_category_change(category_change):
     expected_fields = ['category_id', 'change']
@@ -27,8 +32,8 @@ def is_valid_category_change(category_change):
 
     return True
 
-def is_valid_month_statement(entity):
 
+def is_valid_month_statement(entity):
     expected_fields = ['month', 'year', 'accounts', 'funds', 'categories']
 
     for field in expected_fields:
@@ -44,12 +49,13 @@ def is_valid_month_statement(entity):
 
     return True
 
+
 @pytest.fixture()
 def load_month_transactions(client,
-                              authenticated_header,
-                              accounts,
-                              income_category,
-                              expense_categories):
+                            authenticated_header,
+                            accounts,
+                            income_category,
+                            expense_categories):
     """
 
     :param client:
@@ -88,10 +94,10 @@ def load_month_transactions(client,
         })
 
         for transaction_data in transactions_data:
-            #print(transaction_data)
+            # print(transaction_data)
             res = client.post('/api/transactions',
-                        headers=authenticated_header,
-                        json=transaction_data)
+                              headers=authenticated_header,
+                              json=transaction_data)
 
             assert res.status_code == 200
 
@@ -103,22 +109,24 @@ def load_month_transactions(client,
     return total_statements
 
 
+@pytest.fixture()
+def transactions(client, authenticated_header, load_month_transactions):
+    return client.get('/api/transactions', headers=authenticated_header).get_json()
+
 
 def test_transaction_post_creates_month_statement(client,
                                                   authenticated_header,
                                                   income_category,
                                                   accounts):
-
     query_params = {'year': 2020, 'month': 2}
 
     res = client.get(resource_url,
-                    headers=authenticated_header,
-                    query_string=query_params)
+                     headers=authenticated_header,
+                     query_string=query_params)
 
     assert res.status_code == 200
     assert type(res.get_json()['_items']) is list
     assert res.get_json()['_count'] == 0
-
 
     transaction_data = {
         'change': 2000,
@@ -128,12 +136,12 @@ def test_transaction_post_creates_month_statement(client,
     }
 
     client.post('/api/transactions',
-                 headers=authenticated_header,
-                 json=transaction_data)
+                headers=authenticated_header,
+                json=transaction_data)
 
     res = client.get(resource_url,
-                    headers=authenticated_header,
-                    query_string=query_params)
+                     headers=authenticated_header,
+                     query_string=query_params)
 
     assert res.status_code == 200
 
@@ -147,7 +155,6 @@ def test_transaction_post_creates_month_statement(client,
 
 
 def test_get_month_statements_list_pagination(client, authenticated_header, load_month_transactions):
-
     items_per_page = int(load_month_transactions / 4)
 
     res = client.get(resource_url,
@@ -183,3 +190,47 @@ def test_month_statement_returns_empty_list(client, authenticated_header):
     assert len(res.get_json()['_items']) == 0
     assert res.get_json()['_count'] == 0
 
+
+def test_transaction_delete_modifies_related_month_statement(client, authenticated_header, transactions):
+    test_transaction = transactions[0]
+    transaction_date = datetime.datetime.strptime(test_transaction['date_accomplished'], '%Y-%m-%dT%H:%M:%S')
+
+    statement_initial_state = client.get(resource_url,
+                                         headers=authenticated_header,
+                                         query_string={'year': transaction_date.year,
+                                                       'month': transaction_date.month}
+                                         ).get_json()['_items'][0]
+
+    t = client.delete('/api/transaction/%s' % (test_transaction['id']), headers=authenticated_header)
+
+    statement_next_state = client.get(resource_url,
+                                      headers=authenticated_header,
+                                      query_string={'year': transaction_date.year,
+                                                    'month': transaction_date.month}
+                                      ).get_json()['_items'][0]
+
+    account_id = test_transaction['account_transactions'][0]['account']
+    account_change = Decimal(test_transaction['account_transactions'][0]['change'])
+    fund_id = test_transaction['fund_transactions'][0]['fund']
+    fund_change = Decimal(test_transaction['fund_transactions'][0]['change'])
+
+    statement_account_initial_change = next(
+        (Decimal(account['income']) + Decimal(account['expense']) for account in statement_initial_state['accounts'] if
+         account['account_id'] == account_id))
+
+    statement_account_next_change = next(
+        (Decimal(account['income']) + Decimal(account['expense']) for account in statement_next_state['accounts'] if
+         account['account_id'] == account_id))
+
+    statement_fund_initial_change = next(
+        (Decimal(fund['income']) + Decimal(fund['expense']) for fund in statement_initial_state['funds'] if
+         fund['fund_id'] == fund_id))
+
+    statement_fund_next_change = next(
+        (Decimal(fund['income']) + Decimal(fund['expense']) for fund in statement_next_state['funds'] if
+         fund['fund_id'] == fund_id))
+
+    assert statement_account_next_change == statement_account_initial_change - account_change
+    assert statement_fund_next_change == statement_fund_initial_change - fund_change
+    assert Decimal(statement_next_state['categories'][0]['change']) == Decimal(
+        statement_initial_state['categories'][0]['change']) - account_change
