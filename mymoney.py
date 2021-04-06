@@ -8,6 +8,8 @@ import api
 from werkzeug.security import generate_password_hash
 
 from models.user import User
+from models.transaction import Transaction
+from models.month_statement import MonthStatement
 
 # TODO: Improve to recommended approach https://flask.palletsprojects.com/en/1.1.x/cli/#custom-scripts
 def add_commands(app):
@@ -33,6 +35,22 @@ def add_commands(app):
         db.fund.update({}, {'$rename': {'percentage_assigment': 'percentage_assignment'}}, multi=True)
 
         click.echo("Fix applied")
+
+    @app.cli.command('recreate-month-statements')
+    def recreate_month_statements():
+        """
+        Command for recreate month statements from existing transactions.
+        TODO: Add parameters for more targeted work
+        :return:
+        """
+        transactions = Transaction.objects().all()
+        MonthStatement.objects().delete()
+
+        for t in transactions:
+            MonthStatement.add_to_statement(t)
+
+        click.echo("Month statements recreated!")
+
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
