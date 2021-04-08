@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import mongoengine
 import datetime
 from .user import User
@@ -9,7 +11,7 @@ class Account(mongoengine.Document):
     created_at = mongoengine.DateTimeField(default=lambda: datetime.datetime.now())
 
     @property
-    def balance(self) -> float:
+    def balance(self) -> Decimal:
         db = get_db()
 
         pipeline = [
@@ -20,9 +22,9 @@ class Account(mongoengine.Document):
 
         try:
             result = db.transaction.aggregate(pipeline).next()
-            return result['balance']
+            return Decimal(result['balance']).quantize(Decimal('0.01'))
         except StopIteration as e:
-            return 0
+            return Decimal(0.0)
 
 
 
