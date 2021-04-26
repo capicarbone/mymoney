@@ -3,7 +3,7 @@ import mongoengine
 from decimal import Decimal
 from models.account_transaction import AccountTransaction
 from models.transaction import Transaction
-from models.month_statement import MonthStatement
+from models.period_statement import PeriodStatement
 from models.fund import Fund
 from utils import fund_utils
 from mongoengine import signals
@@ -68,8 +68,8 @@ class IncomeTransaction(Transaction):
         if created:
             document._register_to_statement()
 
-signals.post_delete.connect(MonthStatement.transaction_post_delete, sender=IncomeTransaction)
-signals.post_save.connect(MonthStatement.transaction_post_save, sender=IncomeTransaction)
+signals.post_delete.connect(PeriodStatement.transaction_post_delete, sender=IncomeTransaction)
+signals.post_save.connect(PeriodStatement.transaction_post_save, sender=IncomeTransaction)
 signals.pre_save_post_validation.connect(IncomeTransaction.pre_save_post_validation, sender=IncomeTransaction)
 
 

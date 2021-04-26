@@ -52,7 +52,7 @@ class CategoryChange(EntityChange):
 class FundChange(EntityChange):
     fund = mongoengine.LazyReferenceField(Fund, required=True)
 
-class MonthStatement(mongoengine.Document):
+class PeriodStatement(mongoengine.Document):
     month = mongoengine.IntField(required=True, choices=list(range(1, 13)))
     year = mongoengine.IntField(required=True)
     owner = mongoengine.LazyReferenceField(User, required=True)
@@ -113,13 +113,13 @@ class MonthStatement(mongoengine.Document):
             return
 
         try:
-            month_statement = MonthStatement.objects(owner=transaction.owner,
-                                                     month=transaction.date_accomplished.month,
-                                                     year=transaction.date_accomplished.year).get()
+            month_statement = PeriodStatement.objects(owner=transaction.owner,
+                                                      month=transaction.date_accomplished.month,
+                                                      year=transaction.date_accomplished.year).get()
         except mongoengine.DoesNotExist:
-            month_statement = MonthStatement(owner=transaction.owner,
-                                             month=transaction.date_accomplished.month,
-                                             year=transaction.date_accomplished.year)
+            month_statement = PeriodStatement(owner=transaction.owner,
+                                              month=transaction.date_accomplished.month,
+                                              year=transaction.date_accomplished.year)
 
         month_statement.adjust(transaction)
 
@@ -128,9 +128,9 @@ class MonthStatement(mongoengine.Document):
 
     @classmethod
     def remove_from_statement(cls, transaction: 'Transaction'):
-        month_statement = MonthStatement.objects(owner=transaction.owner,
-                                                 month=transaction.date_accomplished.month,
-                                                 year=transaction.date_accomplished.year).get()
+        month_statement = PeriodStatement.objects(owner=transaction.owner,
+                                                  month=transaction.date_accomplished.month,
+                                                  year=transaction.date_accomplished.year).get()
 
         month_statement.adjust(transaction, reverse=True)
 

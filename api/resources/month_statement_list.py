@@ -2,7 +2,7 @@
 from collections import namedtuple
 from api.authentication import auth
 from flask_restful import Resource, marshal_with, reqparse, fields
-from models.month_statement import MonthStatement, AccountChange
+from models.period_statement import PeriodStatement, AccountChange
 
 account_change = {
     'account_id': fields.String(attribute='account.id'),
@@ -54,7 +54,7 @@ class MonthStatementListResource(Resource):
         items_per_page = pagination_args['items_per_page']
         page = pagination_args['page']
 
-        statements = MonthStatement.objects(**query_args)\
+        statements = PeriodStatement.objects(**query_args)\
             .order_by('-year', '-month')\
             .limit(items_per_page)\
             .skip(page*items_per_page)
