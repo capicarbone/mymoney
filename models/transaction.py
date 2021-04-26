@@ -9,7 +9,7 @@ from models.account_transaction import AccountTransaction
 from models.category import TransactionCategory
 from models.user import User
 from mongoengine import signals
-from models.period_statement import PeriodStatement
+from models.statement import Statement
 
 
 def validate_change(value: float):
@@ -78,4 +78,4 @@ class Transaction(Document):
 
         return reverse_transaction
 
-signals.post_delete.connect(PeriodStatement.transaction_post_delete, sender=Transaction)
+signals.post_delete.connect(Statement.transaction_post_delete, sender=Transaction)

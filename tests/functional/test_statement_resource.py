@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 import datetime
 
-resource_url = '/api/reports/period_statements'
+resource_url = '/api/reports/statements'
 
 
 def is_valid_account_change(account_change):

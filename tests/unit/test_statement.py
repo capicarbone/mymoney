@@ -11,14 +11,14 @@ from models.account import Account
 from models.category import TransactionCategory
 from models.income_transaction import IncomeTransaction
 from models.expense_transaction import ExpenseTransaction
-from models.period_statement import PeriodStatement
+from models.statement import Statement
 
 
 def not_repeated(items) -> bool:
     return len(set(items)) == len(items)
 
 
-def is_consistent(month_statement: PeriodStatement):
+def is_consistent(month_statement: Statement):
     accounts_total_change = sum([acc.income + acc.expense for acc in month_statement.accounts])
     funds_total_change = sum([fnd.income + fnd.expense for fnd in month_statement.funds])
     categories_total_change = sum([cat.change for cat in month_statement.categories])
@@ -86,9 +86,9 @@ def test_new_transaction_generates_new_month_statement(db, mongodb, user, change
 
     statement = None
     try:
-        statement = PeriodStatement.objects(owner=user,
-                                            month=transaction_date.month,
-                                            year=transaction_date.year).get()
+        statement = Statement.objects(owner=user,
+                                      month=transaction_date.month,
+                                      year=transaction_date.year).get()
     except mongoengine.DoesNotExist:
         pass
 
@@ -144,9 +144,9 @@ def test_new_transaction_updates_existing_month_statement(db, mongodb, user, cha
 
         transaction.save()
 
-    statements = PeriodStatement.objects(owner=user,
-                                         month=transaction_date.month,
-                                         year=transaction_date.year).all()
+    statements = Statement.objects(owner=user,
+                                   month=transaction_date.month,
+                                   year=transaction_date.year).all()
     assert len(statements) == 1
     statement = statements[0]
 
@@ -174,33 +174,33 @@ def test_new_transaction_updates_existing_month_statement(db, mongodb, user, cha
 def test_months_statements_consistency(user, one_month_transactions):
     transaction_date = one_month_transactions[0].date_accomplished
     expected_total_change = sum([t.total_change for t in one_month_transactions])
-    statement = PeriodStatement.objects(month=transaction_date.month,
-                                        year=transaction_date.year,
-                                        owner=user).get()
+    statement = Statement.objects(month=transaction_date.month,
+                                  year=transaction_date.year,
+                                  owner=user).get()
 
     assert is_consistent(statement) is True
     assert expected_total_change == statement.total_change
 
 
-def test_removed_transaction_changes_month_statement(user, one_month_transactions: List[PeriodStatement]):
+def test_removed_transaction_changes_month_statement(user, one_month_transactions: List[Statement]):
     transaction_date = one_month_transactions[0].date_accomplished
 
     expected_total_change = sum([t.total_change for t in one_month_transactions])
 
-    month_statement_query = PeriodStatement.objects(month=transaction_date.month,
-                                                    year=transaction_date.year,
-                                                    owner=user
-                                                    )
+    month_statement_query = Statement.objects(month=transaction_date.month,
+                                              year=transaction_date.year,
+                                              owner=user
+                                              )
 
     for transaction in one_month_transactions:
-        initial_month_statement: PeriodStatement = month_statement_query.get()
+        initial_month_statement: Statement = month_statement_query.get()
 
         tr: Transaction = Transaction.objects(
             id=transaction.id).get()  # Getting a transaction instance instead of a specialization
         total_change = tr.total_change
         tr.delete()
 
-        month_statement: PeriodStatement = month_statement_query.get()
+        month_statement: Statement = month_statement_query.get()
 
         expected_total_change -= total_change
 

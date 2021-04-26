@@ -2,7 +2,7 @@
 from collections import namedtuple
 from api.authentication import auth
 from flask_restful import Resource, marshal_with, reqparse, fields
-from models.period_statement import PeriodStatement, AccountChange
+from models.statement import Statement, AccountChange
 
 account_change = {
     'account_id': fields.String(attribute='account.id'),
@@ -36,7 +36,7 @@ page = {
     '_page': fields.Integer(attribute='page')
 }
 
-class PeriodStatementListResource(Resource):
+class StatementListResource(Resource):
     method_decorators = [auth.login_required]
 
     @marshal_with(page)
@@ -54,7 +54,7 @@ class PeriodStatementListResource(Resource):
         items_per_page = pagination_args['items_per_page']
         page = pagination_args['page']
 
-        statements = PeriodStatement.objects(**query_args)\
+        statements = Statement.objects(**query_args)\
             .order_by('-year', '-month')\
             .limit(items_per_page)\
             .skip(page*items_per_page)

@@ -2,7 +2,7 @@
 import mongoengine
 from decimal import Decimal
 from models.account_transaction import AccountTransaction
-from models.period_statement import PeriodStatement
+from models.statement import Statement
 from models.transaction import Transaction
 from models.fund import Fund
 from utils import fund_utils
@@ -65,6 +65,6 @@ class ExpenseTransaction(Transaction):
 
 
 
-signals.post_save.connect(PeriodStatement.transaction_post_save, sender=ExpenseTransaction)
-signals.post_delete.connect(PeriodStatement.transaction_post_delete, sender=ExpenseTransaction)
+signals.post_save.connect(Statement.transaction_post_save, sender=ExpenseTransaction)
+signals.post_delete.connect(Statement.transaction_post_delete, sender=ExpenseTransaction)
 signals.pre_save_post_validation.connect(ExpenseTransaction.pre_save_post_validation, sender=ExpenseTransaction)

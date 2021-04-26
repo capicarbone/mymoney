@@ -9,7 +9,7 @@ from werkzeug.security import generate_password_hash
 
 from models.user import User
 from models.transaction import Transaction
-from models.period_statement import PeriodStatement
+from models.statement import Statement
 
 # TODO: Improve to recommended approach https://flask.palletsprojects.com/en/1.1.x/cli/#custom-scripts
 def add_commands(app):
@@ -44,10 +44,10 @@ def add_commands(app):
         :return:
         """
         transactions = Transaction.objects().all()
-        PeriodStatement.objects().delete()
+        Statement.objects().delete()
 
         for t in transactions:
-            PeriodStatement.add_to_statement(t)
+            Statement.add_to_statement(t)
 
         click.echo("Month statements recreated!")
 
