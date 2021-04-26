@@ -9,7 +9,7 @@ from api.resources.transaction import TransactionResource
 from api.resources.fund_list import FundListResource
 from api.resources.fund_transfer import FundTransferResource
 from api.resources.login import Login
-from api.resources.month_statement_list import MonthStatementListResource
+from api.resources.month_statement_list import PeriodStatementListResource
 
 from .authentication import auth
 
@@ -18,7 +18,7 @@ api = Api(bp)
 
 resources = (
     #('/categories/<string:category_id>/subcategories', SubcategoriesList),
-    ('/reports/month_statements', MonthStatementListResource),
+    ('/reports/period_statements', PeriodStatementListResource),
     ('/funds', FundListResource),
     ('/transactions/categories', CategoriesList),
     ('/accounts', AccountListResource),

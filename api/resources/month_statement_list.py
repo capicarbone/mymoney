@@ -36,7 +36,7 @@ page = {
     '_page': fields.Integer(attribute='page')
 }
 
-class MonthStatementListResource(Resource):
+class PeriodStatementListResource(Resource):
     method_decorators = [auth.login_required]
 
     @marshal_with(page)
