@@ -1,6 +1,8 @@
 from decimal import Decimal
+from enum import Enum
 
 import mongoengine
+from mongoengine.queryset.visitor import Q
 from .user import User
 from .account import Account
 from .category import TransactionCategory
@@ -52,17 +54,26 @@ class FundChange(EntityChange):
     fund = mongoengine.LazyReferenceField(Fund, required=True)
 
 
+class StatementLevel(Enum):
+    MONTH = 3
+    YEAR = 2
+    GENERAL = 1
+
+
 class StatementQuerySet(mongoengine.QuerySet):
 
     def all_levels(self, month: int, year: int):
-        pass
+        return self.filter(Q(level=StatementLevel.GENERAL)
+                    | Q(month=month, level=StatementLevel.MONTH)
+                    | Q(year=year, level=StatementLevel.YEAR))
+
 
 class Statement(mongoengine.Document):
     meta = {'queryset_class': StatementQuerySet}
 
-    month = mongoengine.IntField(required=True, choices=list(range(1, 13)))
-    year = mongoengine.IntField(required=True)
-    level = mongoengine.IntField(required=True, choices=[1,2,3])
+    month = mongoengine.IntField(choices=list(range(1, 13)))
+    year = mongoengine.IntField()
+    level = mongoengine.EnumField(required=True, enum=StatementLevel)
     owner = mongoengine.LazyReferenceField(User, required=True)
     accounts = mongoengine.EmbeddedDocumentListField(AccountChange)
     categories = mongoengine.EmbeddedDocumentListField(CategoryChange)
@@ -116,23 +127,40 @@ class Statement(mongoengine.Document):
             fund_change.apply(fund_transaction.change, reverse)
 
     @classmethod
-    def add_to_statement(cls, transaction: 'Transaction'):
+    def add_to_statements(cls, transaction: 'Transaction'):
         if transaction.is_transfer():
             return
 
-        try:
-            month_statement = Statement.objects(owner=transaction.owner,
-                                                month=transaction.date_accomplished.month,
-                                                year=transaction.date_accomplished.year).get()
-        except mongoengine.DoesNotExist:
+        statements = list(Statement.objects.all_levels(month=transaction.date_accomplished.month,
+                                                  year=transaction.date_accomplished.year))
+
+        available_levels = [statement.level for statement in statements]
+
+        if StatementLevel.MONTH not in available_levels:
             month_statement = Statement(owner=transaction.owner,
+                                        level=StatementLevel.MONTH,
                                         month=transaction.date_accomplished.month,
                                         year=transaction.date_accomplished.year)
+            statements.append(month_statement)
 
-        month_statement.adjust(transaction)
+        if StatementLevel.YEAR not in available_levels:
+            year_statement = Statement(owner=transaction.owner,
+                                        level=StatementLevel.YEAR,
+                                        month=None,
+                                        year=transaction.date_accomplished.year)
+            statements.append(year_statement)
 
-        month_statement.last_transaction_processed = transaction.id
-        month_statement.save()
+        if StatementLevel.GENERAL not in available_levels:
+            general_statement = Statement(owner=transaction.owner,
+                                        level=StatementLevel.GENERAL,
+                                        month=None,
+                                        year=None)
+            statements.append(general_statement)
+
+        for statement in statements:
+            statement.adjust(transaction)
+            statement.last_transaction_processed = transaction.id
+            statement.save()
 
     @classmethod
     def remove_from_statement(cls, transaction: 'Transaction'):
@@ -147,7 +175,7 @@ class Statement(mongoengine.Document):
     @classmethod
     def transaction_post_save(cls, sender, document: 'Transaction', created: bool):
         if created and not document.is_transfer():
-            cls.add_to_statement(document)
+            cls.add_to_statements(document)
 
     @classmethod
     def transaction_post_delete(cls, sender, document: 'Transaction'):

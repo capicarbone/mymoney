@@ -47,7 +47,7 @@ def add_commands(app):
         Statement.objects().delete()
 
         for t in transactions:
-            Statement.add_to_statement(t)
+            Statement.add_to_statements(t)
 
         click.echo("Month statements recreated!")
 

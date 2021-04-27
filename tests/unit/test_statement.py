@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import List
 
 from models import User
+from models import StatementLevel, Statement
 from models.transaction import Transaction
 
 import datetime
@@ -12,7 +13,7 @@ from models.account import Account
 from models.category import TransactionCategory
 from models.income_transaction import IncomeTransaction
 from models.expense_transaction import ExpenseTransaction
-from models.statement import Statement
+
 
 
 def not_repeated(items) -> bool:
@@ -68,7 +69,7 @@ def test_all_levels_query(user: User, one_month_transactions: List[Statement]):
 
     assert len(statements) == 3
     result_levels = [statement.level for statement in statements]
-    for level in [1, 2, 3]:
+    for level in [StatementLevel.GENERAL, StatementLevel.YEAR, StatementLevel.MONTH]:
         assert level in result_levels
 
 @pytest.mark.parametrize(('change',),
