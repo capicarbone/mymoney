@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from typing import List
 
+from models import User
 from models.transaction import Transaction
 
 import datetime
@@ -62,6 +63,13 @@ def one_month_transactions(request, db, mongodb, user):
 
     return transactions
 
+def test_all_levels_query(user: User, one_month_transactions: List[Statement]):
+    statements = Statement.objects.all_levels(month=2, year=2021)
+
+    assert len(statements) == 3
+    result_levels = [statement.level for statement in statements]
+    for level in [1, 2, 3]:
+        assert level in result_levels
 
 @pytest.mark.parametrize(('change',),
                          [(Decimal("-300.00"),), (Decimal("300.00"),), (Decimal("2000.21"),), (Decimal("-1.23"),)])

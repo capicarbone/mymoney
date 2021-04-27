@@ -48,13 +48,21 @@ class CategoryChange(EntityChange):
     category = mongoengine.LazyReferenceField(TransactionCategory, required=True)
 
 
-
 class FundChange(EntityChange):
     fund = mongoengine.LazyReferenceField(Fund, required=True)
 
+
+class StatementQuerySet(mongoengine.QuerySet):
+
+    def all_levels(self, month: int, year: int):
+        pass
+
 class Statement(mongoengine.Document):
+    meta = {'queryset_class': StatementQuerySet}
+
     month = mongoengine.IntField(required=True, choices=list(range(1, 13)))
     year = mongoengine.IntField(required=True)
+    level = mongoengine.IntField(required=True, choices=[1,2,3])
     owner = mongoengine.LazyReferenceField(User, required=True)
     accounts = mongoengine.EmbeddedDocumentListField(AccountChange)
     categories = mongoengine.EmbeddedDocumentListField(CategoryChange)
