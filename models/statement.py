@@ -64,7 +64,7 @@ class StatementQuerySet(mongoengine.QuerySet):
 
     def all_levels(self, month: int, year: int):
         return self.filter(Q(level=StatementLevel.GENERAL)
-                    | Q(month=month, level=StatementLevel.MONTH)
+                    | Q(month=month, year=year, level=StatementLevel.MONTH)
                     | Q(year=year, level=StatementLevel.YEAR))
 
 

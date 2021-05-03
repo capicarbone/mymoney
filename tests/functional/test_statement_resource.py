@@ -150,8 +150,6 @@ def test_transaction_post_creates_statements(client,
 def test_pagination(client, authenticated_header, load_transactions):
     items_per_page = int(load_transactions / 4)
 
-    #pytest.set_trace()
-
     res = client.get(resource_url,
                      headers=authenticated_header,
                      query_string={'items_per_page': items_per_page})

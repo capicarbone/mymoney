@@ -65,6 +65,7 @@ def one_month_transactions(request, db, mongodb, user):
 
 
 def test_all_levels_query(user: User, one_month_transactions: List[Statement]):
+    # TODO load several month, test all levels belongs to request years a months
     statements = Statement.objects.all_levels(month=2, year=2021)
 
     assert len(statements) == 3
