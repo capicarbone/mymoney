@@ -193,16 +193,16 @@ def test_removed_transaction_changes_statements(user, one_month_transactions: Li
     expected_total_change = sum([t.total_change for t in one_month_transactions])
 
     for transaction in one_month_transactions:
-        statements_initial_state: List[Statement] = Statement.objects.all_levels(month=transaction_date.month,
-                                                                                 year=transaction_date.year)
+        statements_initial_state: List[Statement] = list(Statement.objects.all_levels(month=transaction_date.month,
+                                                                                 year=transaction_date.year))
 
         tr: Transaction = Transaction.objects(
             id=transaction.id).get()  # Getting a transaction instance instead of a specialization
         total_change = tr.total_change
         tr.delete()
 
-        statements_current_state: List[Statement] = Statement.objects.all_levels(month=transaction_date.month,
-                                                                                 year=transaction_date.year)
+        statements_current_state: List[Statement] = list(Statement.objects.all_levels(month=transaction_date.month,
+                                                                                 year=transaction_date.year))
 
         expected_total_change -= total_change
 
@@ -210,7 +210,7 @@ def test_removed_transaction_changes_statements(user, one_month_transactions: Li
 
         for statement_initial_state, statement_current_state in [
             (statements_initial_state[index], statements_current_state[index]) for index, _ in
-             enumerate(statements_initial_state)]:
+            enumerate(statements_initial_state)]:
 
             assert is_consistent(statement_current_state)
             if tr.is_income():

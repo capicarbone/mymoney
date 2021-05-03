@@ -163,14 +163,13 @@ class Statement(mongoengine.Document):
             statement.save()
 
     @classmethod
-    def remove_from_statement(cls, transaction: 'Transaction'):
-        month_statement = Statement.objects(owner=transaction.owner,
-                                            month=transaction.date_accomplished.month,
-                                            year=transaction.date_accomplished.year).get()
+    def remove_from_statements(cls, transaction: 'Transaction'):
+        statements = list(Statement.objects.all_levels(month=transaction.date_accomplished.month,
+                                                       year=transaction.date_accomplished.year))
 
-        month_statement.adjust(transaction, reverse=True)
-
-        month_statement.save()
+        for statement in statements:
+            statement.adjust(transaction, reverse=True)
+            statement.save()
 
     @classmethod
     def transaction_post_save(cls, sender, document: 'Transaction', created: bool):
@@ -179,4 +178,4 @@ class Statement(mongoengine.Document):
 
     @classmethod
     def transaction_post_delete(cls, sender, document: 'Transaction'):
-        cls.remove_from_statement(document)
+        cls.remove_from_statements(document)
