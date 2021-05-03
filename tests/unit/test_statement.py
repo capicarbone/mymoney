@@ -74,7 +74,9 @@ def test_all_levels_query(user: User, one_month_transactions: List[Statement]):
 
 @pytest.mark.parametrize(('change',),
                          [(Decimal("-300.00"),), (Decimal("300.00"),), (Decimal("2000.21"),), (Decimal("-1.23"),)])
-def test_new_transaction_generates_new_month_statement(db, mongodb, user, change):
+def test_new_transaction_generates_new_statements(db, mongodb, user, change):
+
+    # TODO Move this part to fixture
     account = Account.objects(owner=user)[0]
 
     income_category = TransactionCategory.objects(kind="income")[0]
@@ -91,40 +93,37 @@ def test_new_transaction_generates_new_month_statement(db, mongodb, user, change
                                          category=expense_category.id,
                                          date_accomplished=transaction_date)
 
+
     transaction.save()
 
-    statement = None
-    try:
-        statement = Statement.objects(owner=user,
-                                      month=transaction_date.month,
-                                      year=transaction_date.year).get()
-    except mongoengine.DoesNotExist:
-        pass
+    statements = Statement.objects.all_levels(month=transaction_date.month,
+                                              year=transaction_date.year)
 
-    assert statement is not None
-    assert len(statement.categories) == 1
-    assert len(statement.accounts) == 1
-    assert len(statement.funds) > 0
-    assert is_consistent(statement) is True
+    for statement in statements:
+        assert statement is not None
+        assert len(statement.categories) == 1
+        assert len(statement.accounts) == 1
+        assert len(statement.funds) > 0
+        assert is_consistent(statement) is True
 
-    assert statement.categories[0].change == change
+        assert statement.categories[0].change == change
 
-    if change > 0:
-        assert statement.categories[0].category.id == income_category.id
-    else:
-        assert statement.categories[0].category.id == expense_category.id
+        if change > 0:
+            assert statement.categories[0].category.id == income_category.id
+        else:
+            assert statement.categories[0].category.id == expense_category.id
 
-    assert statement.accounts[0].income + statement.accounts[0].expense == change
-    assert statement.accounts[0].account.id == account.id
+        assert statement.accounts[0].income + statement.accounts[0].expense == change
+        assert statement.accounts[0].account.id == account.id
 
-    assert sum([fund_change.income + fund_change.expense for fund_change in statement.funds]) == change
+        assert sum([fund_change.income + fund_change.expense for fund_change in statement.funds]) == change
 
-    if change > 0:
-        assert statement.accounts[0].expense == 0
-        assert sum([fund_change.expense for fund_change in statement.funds]) == 0
-    else:
-        assert statement.accounts[0].income == 0
-        assert sum([fund_change.income for fund_change in statement.funds]) == 0
+        if change > 0:
+            assert statement.accounts[0].expense == 0
+            assert sum([fund_change.expense for fund_change in statement.funds]) == 0
+        else:
+            assert statement.accounts[0].income == 0
+            assert sum([fund_change.income for fund_change in statement.funds]) == 0
 
 
 @pytest.mark.parametrize(('changes'), [
@@ -132,7 +131,7 @@ def test_new_transaction_generates_new_month_statement(db, mongodb, user, change
     ([Decimal("-222.00"), Decimal("400"), Decimal("-500")]),
     ([Decimal("-211.12"), Decimal("12.1"), Decimal("500.00"), Decimal("451.00"), Decimal("723.99")]),
 ])
-def test_new_transaction_updates_existing_month_statement(db, mongodb, user, changes):
+def test_new_transaction_updates_existing_statements(db, mongodb, user, changes):
     account = Account.objects(owner=user)[0]
 
     income_category = TransactionCategory.objects(kind="income")[0]
@@ -153,42 +152,40 @@ def test_new_transaction_updates_existing_month_statement(db, mongodb, user, cha
 
         transaction.save()
 
-    statements = Statement.objects(owner=user,
-                                   month=transaction_date.month,
-                                   year=transaction_date.year).all()
-    assert len(statements) == 1
-    statement = statements[0]
+    statements = Statement.objects.all_levels(month=transaction_date.month,
+                                              year=transaction_date.year)
 
-    total_income = sum([change for change in changes if change > 0])
-    total_expense = sum(changes) - total_income
-    total_balance = total_income + total_expense
+    for statement in statements:
+        total_income = sum([change for change in changes if change > 0])
+        total_expense = sum(changes) - total_income
+        total_balance = total_income + total_expense
 
-    assert len(statement.categories) == 2
-    for category_change in statement.categories:
-        if category_change.category.id == expense_category.id:
-            assert category_change.change == total_expense
+        assert len(statement.categories) == 2
+        for category_change in statement.categories:
+            if category_change.category.id == expense_category.id:
+                assert category_change.change == total_expense
 
-        if category_change.category.id == income_category.id:
-            assert category_change.change == total_income
+            if category_change.category.id == income_category.id:
+                assert category_change.change == total_income
 
-    assert len(statement.accounts) == 1
-    assert statement.accounts[0].income == total_income
-    assert statement.accounts[0].expense == total_expense
-    assert len(statement.funds) > 0
-    assert sum([fund_change.income + fund_change.expense for fund_change in statement.funds]) == total_balance
+        assert len(statement.accounts) == 1
+        assert statement.accounts[0].income == total_income
+        assert statement.accounts[0].expense == total_expense
+        assert len(statement.funds) > 0
+        assert sum([fund_change.income + fund_change.expense for fund_change in statement.funds]) == total_balance
 
     # TODO: Collect every fund transacion and validate against fund changes.
 
 
-def test_months_statements_consistency(user, one_month_transactions):
+def test_statements_consistency(user, one_month_transactions):
     transaction_date = one_month_transactions[0].date_accomplished
     expected_total_change = sum([t.total_change for t in one_month_transactions])
-    statement = Statement.objects(month=transaction_date.month,
-                                  year=transaction_date.year,
-                                  owner=user).get()
+    statements = Statement.objects.all_levels(month=transaction_date.month,
+                                              year=transaction_date.year)
 
-    assert is_consistent(statement) is True
-    assert expected_total_change == statement.total_change
+    for statement in statements:
+        assert is_consistent(statement) is True
+        assert expected_total_change == statement.total_change
 
 
 def test_removed_transaction_changes_month_statement(user, one_month_transactions: List[Statement]):
