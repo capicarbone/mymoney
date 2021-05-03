@@ -33,8 +33,8 @@ def is_valid_category_change(category_change):
     return True
 
 
-def is_valid_month_statement(entity):
-    expected_fields = ['month', 'year', 'accounts', 'funds', 'categories']
+def is_valid_statement(entity):
+    expected_fields = ['level', 'month', 'year', 'accounts', 'funds', 'categories']
 
     for field in expected_fields:
         assert field in entity
@@ -51,7 +51,7 @@ def is_valid_month_statement(entity):
 
 
 @pytest.fixture()
-def load_month_transactions(client,
+def load_transactions(client,
                             authenticated_header,
                             accounts,
                             income_category,
@@ -68,7 +68,7 @@ def load_month_transactions(client,
     current_year = 2017
     current_month = 8
     end_year = 2020
-    total_statements = 0
+    statements_count = 1
 
     while current_year <= end_year:
         transactions_data = []
@@ -94,35 +94,31 @@ def load_month_transactions(client,
         })
 
         for transaction_data in transactions_data:
-            # print(transaction_data)
             res = client.post('/api/transactions',
                               headers=authenticated_header,
                               json=transaction_data)
 
             assert res.status_code == 200
 
+        statements_count += 1 + int((current_month + 1) / 12)
         current_year += int((current_month + 1) / 12)
         current_month = (current_month + 1) % 12
 
-        total_statements += 1
-
-    return total_statements
+    return statements_count
 
 
 @pytest.fixture()
-def transactions(client, authenticated_header, load_month_transactions):
+def transactions(client, authenticated_header, load_transactions):
     return client.get('/api/transactions', headers=authenticated_header).get_json()
 
 
-def test_transaction_post_creates_month_statement(client,
-                                                  authenticated_header,
-                                                  income_category,
-                                                  accounts):
-    query_params = {'year': 2020, 'month': 2}
+def test_transaction_post_creates_statements(client,
+                                            authenticated_header,
+                                            income_category,
+                                            accounts):
 
     res = client.get(resource_url,
-                     headers=authenticated_header,
-                     query_string=query_params)
+                     headers=authenticated_header)
 
     assert res.status_code == 200
     assert type(res.get_json()['_items']) is list
@@ -140,22 +136,21 @@ def test_transaction_post_creates_month_statement(client,
                 json=transaction_data)
 
     res = client.get(resource_url,
-                     headers=authenticated_header,
-                     query_string=query_params)
+                     headers=authenticated_header)
 
     assert res.status_code == 200
 
     assert type(res.get_json()['_items']) is list
-    assert len(res.get_json()['_items']) == 1
-    assert res.get_json()['_count'] == 1
+    assert len(res.get_json()['_items']) == 3
+    assert res.get_json()['_count'] == 3
     first_item = res.get_json()['_items'][0]
-    assert is_valid_month_statement(first_item)
-    assert first_item['year'] == query_params['year']
-    assert first_item['month'] == query_params['month']
+    assert is_valid_statement(first_item)
 
 
-def test_get_month_statements_list_pagination(client, authenticated_header, load_month_transactions):
-    items_per_page = int(load_month_transactions / 4)
+def test_pagination(client, authenticated_header, load_transactions):
+    items_per_page = int(load_transactions / 4)
+
+    #pytest.set_trace()
 
     res = client.get(resource_url,
                      headers=authenticated_header,
@@ -166,7 +161,7 @@ def test_get_month_statements_list_pagination(client, authenticated_header, load
     assert type(data['_items']) is list
     assert data['_page'] == 0
     assert len(data['_items']) == items_per_page
-    assert data['_count'] == load_month_transactions
+    assert data['_count'] == load_transactions
 
     res = client.get(resource_url,
                      headers=authenticated_header,
@@ -179,7 +174,7 @@ def test_get_month_statements_list_pagination(client, authenticated_header, load
     assert len(data['_items']) == items_per_page
 
 
-def test_month_statement_returns_empty_list(client, authenticated_header):
+def test_get_statements_returns_empty_list(client, authenticated_header):
     res = client.get(resource_url,
                      headers=authenticated_header,
                      query_string={'year': 2000}
