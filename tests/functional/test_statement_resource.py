@@ -52,10 +52,10 @@ def is_valid_statement(entity):
 
 @pytest.fixture()
 def load_transactions(client,
-                            authenticated_header,
-                            accounts,
-                            income_category,
-                            expense_categories):
+                      authenticated_header,
+                      accounts,
+                      income_category,
+                      expense_categories):
     """
 
     :param client:
@@ -113,10 +113,9 @@ def transactions(client, authenticated_header, load_transactions):
 
 
 def test_transaction_post_creates_statements(client,
-                                            authenticated_header,
-                                            income_category,
-                                            accounts):
-
+                                             authenticated_header,
+                                             income_category,
+                                             accounts):
     res = client.get(resource_url,
                      headers=authenticated_header)
 
@@ -171,6 +170,42 @@ def test_pagination(client, authenticated_header, load_transactions):
     assert data['_page'] == 1
     assert len(data['_items']) == items_per_page
     assert data['_count'] == load_transactions
+
+
+def test_order(client, authenticated_header, load_transactions):
+    res = client.get(resource_url, headers=authenticated_header)
+
+    data = res.get_json()
+    items = data['_items']
+
+    # TODO load all pages
+
+    assert items[0]['level'] == 1
+    current_year = None
+    current_month = None
+
+    for i in range(1, len(items)):
+        item = items[i]
+        if item['year'] != current_year:
+            # there is a year change
+            assert item['level'] == 2
+            if current_year == None:
+                current_year = item['year']
+            else:
+                assert item['year'] == current_year - 1
+
+            current_year = item['year']
+            current_month = None
+            continue
+
+        # it's a level 3
+        assert item['level'] == 3
+        assert item['year'] == current_year
+
+        if current_month == None:
+            current_month = item['month']
+        else:
+            assert item['month'] == 1 + (current_month % 12)
 
 
 def test_get_statements_returns_empty_list(client, authenticated_header):
