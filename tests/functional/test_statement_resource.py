@@ -170,6 +170,7 @@ def test_pagination(client, authenticated_header, load_transactions):
     data = res.get_json()
     assert data['_page'] == 1
     assert len(data['_items']) == items_per_page
+    assert data['_count'] == load_transactions
 
 
 def test_get_statements_returns_empty_list(client, authenticated_header):
@@ -184,7 +185,12 @@ def test_get_statements_returns_empty_list(client, authenticated_header):
     assert res.get_json()['_count'] == 0
 
 
-def test_transaction_delete_modifies_related_month_statement(client, authenticated_header, transactions):
+def test_transaction_delete_modifies_related_statements(client, authenticated_header, transactions):
+    """
+    This test currently only checks for changes on month statement (level 3). Checks on
+    others levels is delegated to unit tests.
+    """
+
     test_transaction = transactions[0]
     transaction_date = datetime.datetime.strptime(test_transaction['date_accomplished'], '%Y-%m-%dT%H:%M:%S')
 

@@ -1,5 +1,5 @@
 from decimal import Decimal
-from enum import Enum
+from enum import IntEnum
 
 import mongoengine
 from mongoengine.queryset.visitor import Q
@@ -54,7 +54,7 @@ class FundChange(EntityChange):
     fund = mongoengine.LazyReferenceField(Fund, required=True)
 
 
-class StatementLevel(Enum):
+class StatementLevel(IntEnum):
     MONTH = 3
     YEAR = 2
     GENERAL = 1

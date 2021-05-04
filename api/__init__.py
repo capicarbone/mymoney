@@ -9,7 +9,7 @@ from api.resources.transaction import TransactionResource
 from api.resources.fund_list import FundListResource
 from api.resources.fund_transfer import FundTransferResource
 from api.resources.login import Login
-from api.resources.month_statement_list import StatementListResource
+from api.resources.statements_list import StatementListResource
 
 from .authentication import auth
 

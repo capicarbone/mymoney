@@ -23,6 +23,7 @@ category_change = {
 
 month_statement_fields = {
     '_id': fields.String(attribute='id'),
+    'level': fields.Integer,
     'month': fields.Integer,
     'year': fields.Integer,
     'accounts': fields.List(fields.Nested(account_change)),
