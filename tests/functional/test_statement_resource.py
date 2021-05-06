@@ -173,39 +173,58 @@ def test_pagination(client, authenticated_header, load_transactions):
 
 
 def test_order(client, authenticated_header, load_transactions):
-    res = client.get(resource_url, headers=authenticated_header)
 
-    data = res.get_json()
-    items = data['_items']
+    page = 0
+    items = []
+    while True:
+        res = client.get(resource_url, headers=authenticated_header,
+                         query_string={'page': page})
 
-    # TODO load all pages
+        data = res.get_json()
+        items.extend(data['_items'])
+
+        if len(items) == data['_count']:
+            break
+
+        page += 1
+
 
     assert items[0]['level'] == 1
-    current_year = None
-    current_month = None
+    next_year = None
+    start_year = None
 
+    month_statement_start = 0
     for i in range(1, len(items)):
         item = items[i]
-        if item['year'] != current_year:
-            # there is a year change
-            assert item['level'] == 2
-            if current_year == None:
-                current_year = item['year']
-            else:
-                assert item['year'] == current_year - 1
 
-            current_year = item['year']
-            current_month = None
-            continue
+        if item['level'] != 2:
+            month_statement_start = i
+            break
 
-        # it's a level 3
+        assert item['level'] == 2
+        if next_year is None:
+            next_year = item['year']
+            start_year = next_year
+
+        assert item['year'] == next_year
+        next_year -= 1
+
+    current_year = start_year
+    next_month = None
+
+    for i in range(month_statement_start, len(items)):
+        item = items[i]
         assert item['level'] == 3
+
+        if next_month is None:
+            next_month = items['month']
+
+        assert item['month'] == next_month
         assert item['year'] == current_year
 
-        if current_month == None:
-            current_month = item['month']
-        else:
-            assert item['month'] == 1 + (current_month % 12)
+        next_month = 1 + (next_month % 12)
+        if next_month == 1:
+            current_year -=  1
 
 
 def test_get_statements_returns_empty_list(client, authenticated_header):
