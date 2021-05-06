@@ -188,7 +188,6 @@ def test_order(client, authenticated_header, load_transactions):
 
         page += 1
 
-
     assert items[0]['level'] == 1
     next_year = None
     start_year = None
@@ -217,14 +216,14 @@ def test_order(client, authenticated_header, load_transactions):
         assert item['level'] == 3
 
         if next_month is None:
-            next_month = items['month']
+            next_month = item['month']
 
         assert item['month'] == next_month
         assert item['year'] == current_year
 
-        next_month = 1 + (next_month % 12)
-        if next_month == 1:
-            current_year -=  1
+        next_month = 12 - ((13 - next_month) % 12)
+        if next_month == 12:
+            current_year -= 1
 
 
 def test_get_statements_returns_empty_list(client, authenticated_header):

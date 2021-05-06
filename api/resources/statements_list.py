@@ -56,7 +56,7 @@ class StatementListResource(Resource):
         page = pagination_args['page']
 
         statements = Statement.objects(**query_args)\
-            .order_by('-year', '-month')\
+            .order_by('level', '-year', '-month')\
             .limit(items_per_page)\
             .skip(page*items_per_page)
 
