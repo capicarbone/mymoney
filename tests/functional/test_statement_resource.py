@@ -6,6 +6,17 @@ import datetime
 resource_url = '/api/reports/statements'
 
 
+def reversed_months(start_month):
+    """
+    Generator for months order in reverse. User for check decrease order.
+    :param start_month: month to start
+    """
+    current_month = start_month
+    while True:
+        yield current_month
+        current_month = 12 - ((13 - current_month) % 12)
+
+
 def is_valid_account_change(account_change):
     expected_fields = ['account_id', 'income', 'expense']
 
@@ -172,6 +183,7 @@ def test_pagination(client, authenticated_header, load_transactions):
     assert data['_count'] == load_transactions
 
 
+
 def test_order(client, authenticated_header, load_transactions):
 
     page = 0
@@ -209,20 +221,20 @@ def test_order(client, authenticated_header, load_transactions):
         next_year -= 1
 
     current_year = start_year
-    next_month = None
+    month_generator = None
 
     for i in range(month_statement_start, len(items)):
         item = items[i]
         assert item['level'] == 3
 
-        if next_month is None:
-            next_month = item['month']
+        if month_generator is None:
+            month_generator = reversed_months(item['month'])
 
-        assert item['month'] == next_month
+        current_month = next(month_generator)
+        assert item['month'] == current_month
         assert item['year'] == current_year
 
-        next_month = 12 - ((13 - next_month) % 12)
-        if next_month == 12:
+        if current_month == 1:
             current_year -= 1
 
 
