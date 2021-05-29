@@ -8,7 +8,7 @@ pytest = "*"
 
 [packages]
 flask = "*"
-mongoengine = "*"
+mongoengine = "==0.23.1"
 flask-mongoengine = "*"
 flask-restful = "*"
 flask-httpauth = "*"
