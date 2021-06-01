@@ -2,7 +2,7 @@
 from decimal import Decimal
 from models.account import Account
 
-def test_account(db, mongodb):
+def test_account_balance_calculation(db, mongodb):
     account = Account.objects(id="5ec7441e192cf1720a170389").get()
     assert account.balance == Decimal(1950)
 
