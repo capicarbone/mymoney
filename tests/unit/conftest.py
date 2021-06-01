@@ -9,6 +9,7 @@ def db(pytestconfig):
     yield mongoengine.get_connection()
     mongoengine.disconnect()
 
+# TODO should need db and mongodb fixtures
 @pytest.fixture()
 def user():
     return User.objects.first()
