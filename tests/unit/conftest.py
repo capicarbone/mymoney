@@ -11,5 +11,5 @@ def db(pytestconfig):
 
 # TODO should need db and mongodb fixtures
 @pytest.fixture()
-def user():
+def user(db, mongodb):
     return User.objects.first()
