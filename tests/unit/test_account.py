@@ -1,16 +1,18 @@
 import datetime
 import pytest
 from decimal import Decimal
-from models import Account, ExpenseTransaction, IncomeTransaction
+from models import Account, ExpenseTransaction, IncomeTransaction, InitialBalanceTransaction
 
 
 @pytest.fixture()
 def create_and_load_transactions(db, mongodb, main_user_id, expense_categories, income_category):
-    initial_balance = 4303
     account = Account(owner=main_user_id, name="New Account",
-                      initial_balance=initial_balance
                       )
     account.save()
+
+    InitialBalanceTransaction(owner=main_user_id,
+                              change=4303,
+                              account_id=account.id)
 
     ExpenseTransaction(owner=main_user_id,
                        date_accomplished=datetime.datetime.now(),
