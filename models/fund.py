@@ -51,7 +51,8 @@ class Fund(mongoengine.Document):
         pipeline = [
             {'$unwind': '$fund_transactions'},
             {'$match':
-                 {'owner': self.owner.id, 'date_accomplished': {'$lte': from_datetime}, 'fund_transactions.fund': self.id}},
+                #
+                 {'owner': self.owner.id, '$or': [{'date_accomplished': {'$lte': from_datetime}}, {'date_accomplished': None}], 'fund_transactions.fund': self.id}},
             {'$group': {'_id': '$fund_transactions.fund', 'balance': {'$sum': '$fund_transactions.change'}}}
         ]
 
