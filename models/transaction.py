@@ -1,6 +1,8 @@
 
 from copy import copy, deepcopy
 from decimal import Decimal
+from typing import Tuple, Dict
+
 import mongoengine
 from flask_mongoengine import Document
 import datetime
@@ -27,6 +29,17 @@ class Transaction(Document):
     category = mongoengine.ReferenceField(TransactionCategory)
 
     meta = {'allow_inheritance': True}
+
+    def _extract_utilitaries_paramenters(self, parameters: Dict) -> Tuple[Decimal, str]:
+        """
+
+        :param parameters: Paramenters received on __init__ call
+        :return: (change, account_id)
+        """
+        change: Decimal = parameters.pop('change') if 'change' in parameters else None
+        account_id: str = parameters.pop('account_id') if 'account_id' in parameters else None
+
+        return change, account_id
 
     def adjust_change(self, change):
 

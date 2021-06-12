@@ -12,8 +12,10 @@ class ExpenseTransaction(Transaction):
 
     def __init__(self, **kwargs):
 
-        change: Decimal = kwargs.pop('change') if 'change' in kwargs else None
-        account_id: str = kwargs.pop('account_id') if 'account_id' in kwargs else None
+        parameters = self._extract_utilitaries_paramenters(kwargs)
+
+        change: Decimal = parameters[0]
+        account_id: str = parameters[1]
 
         super().__init__(**kwargs)
 
