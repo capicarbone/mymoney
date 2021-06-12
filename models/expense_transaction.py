@@ -1,5 +1,6 @@
 
 import mongoengine
+from datetime import datetime
 from decimal import Decimal
 from models.account_transaction import AccountTransaction
 from models.statement import Statement
@@ -23,8 +24,6 @@ class ExpenseTransaction(Transaction):
             account_transaction = AccountTransaction(account=account_id, change=change)
             self.account_transactions.append(account_transaction)
 
-
-
     def clean(self):
 
         if not self.category or self.category.is_income():
@@ -36,7 +35,14 @@ class ExpenseTransaction(Transaction):
         if self.account_transactions[0].change >= 0:
             raise mongoengine.ValidationError("Change must be negative")
 
+        if self.date_accomplished is None:
+            raise mongoengine.ValidationError("Date is missing")
+
     def __process_expense(self):
+        """
+        Create and assign fund transactions.
+        :return:
+        """
 
         fund = Fund.objects(categories=self.category, owner=self.owner).get()
 
@@ -44,6 +50,11 @@ class ExpenseTransaction(Transaction):
         self.fund_transactions = assignments
 
     def adjust_change(self, change):
+        """
+        User for transaction change or update.
+        :param change: new change value for the transaction
+        :return:
+        """
 
         super().adjust_change(change)
 
@@ -64,7 +75,6 @@ class ExpenseTransaction(Transaction):
         document.__process_expense()
 
         assert sum([ft.change for ft in document.fund_transactions]) == document.total_change
-
 
 
 signals.post_save.connect(Statement.transaction_post_save, sender=ExpenseTransaction)

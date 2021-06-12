@@ -1,3 +1,4 @@
+from datetime import datetime
 
 import mongoengine
 from decimal import Decimal
@@ -32,6 +33,9 @@ class IncomeTransaction(Transaction):
 
         if self.account_transactions[0].change <= 0:
             raise mongoengine.ValidationError("Change must be positive")
+
+        if self.date_accomplished is None:
+            raise mongoengine.ValidationError("Date is missing")
 
     def __proccess_income(self):
 

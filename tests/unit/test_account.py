@@ -12,7 +12,7 @@ def create_and_load_transactions(db, mongodb, main_user_id, expense_categories, 
 
     InitialBalanceTransaction(owner=main_user_id,
                               change=4303,
-                              account_id=account.id)
+                              account_id=account.id).save()
 
     ExpenseTransaction(owner=main_user_id,
                        date_accomplished=datetime.datetime.now(),
