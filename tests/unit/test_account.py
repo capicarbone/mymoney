@@ -40,6 +40,7 @@ def test_account_balance_calculation(db, mongodb):
     account = Account.objects(id="5ec74423192cf1720a17038a").get()
     assert account.balance == Decimal(1900)
 
+# TODO mo
 def test_initial_balance_computed_on_account_balance(create_and_load_transactions, main_user_id):
     account_id, changes = create_and_load_transactions
     expected_balance = sum(changes)
