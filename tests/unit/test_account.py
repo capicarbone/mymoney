@@ -1,7 +1,7 @@
 import datetime
 import pytest
 from decimal import Decimal
-from models import Account, ExpenseTransaction, IncomeTransaction, InitialBalanceTransaction
+from models import Account, ExpenseTransaction, IncomeTransaction, InitialBalanceTransaction, Fund
 
 
 @pytest.fixture()
@@ -40,10 +40,12 @@ def test_account_balance_calculation(db, mongodb):
     account = Account.objects(id="5ec74423192cf1720a17038a").get()
     assert account.balance == Decimal(1900)
 
-def test_initial_balance_computed_on_account_balance(create_and_load_transactions):
+def test_initial_balance_computed_on_account_balance(create_and_load_transactions, main_user_id):
     account_id, changes = create_and_load_transactions
     expected_balance = sum(changes)
 
     account = Account.objects(id=account_id).get()
+    fund = Fund.objects(owner=main_user_id, is_default=True).get()
 
     assert account.balance == expected_balance
+    assert fund.balance == changes[0] # The initial balance should be assigned to default fund
