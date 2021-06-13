@@ -3,6 +3,7 @@ from enum import IntEnum
 
 import mongoengine
 from mongoengine.queryset.visitor import Q
+
 from .user import User
 from .account import Account
 from .category import TransactionCategory
@@ -62,10 +63,10 @@ class StatementLevel(IntEnum):
 
 class StatementQuerySet(mongoengine.QuerySet):
 
-    def all_levels(self, month: int, year: int):
-        return self.filter(Q(level=StatementLevel.GENERAL)
-                    | Q(month=month, year=year, level=StatementLevel.MONTH)
-                    | Q(year=year, level=StatementLevel.YEAR))
+    def all_levels(self, month: int, year: int, owner):
+        return self.filter(Q(level=StatementLevel.GENERAL, owner=owner)
+                           | Q(month=month, year=year, level=StatementLevel.MONTH, owner=owner)
+                           | Q(year=year, level=StatementLevel.YEAR, owner=owner))
 
 
 class Statement(mongoengine.Document):
@@ -100,13 +101,15 @@ class Statement(mongoengine.Document):
         return search[0] if len(search) == 1 else None
 
     def adjust(self, transaction: 'Transaction', reverse=False):
-        category_change = self.get_cateogry_change(transaction.category.id)
 
-        if category_change is None:
-            category_change = CategoryChange(category=transaction.category)
-            self.categories.insert(0, category_change)
+        if transaction.category:
+            category_change = self.get_cateogry_change(transaction.category.id)
 
-        category_change.apply(transaction.total_change, reverse)
+            if category_change is None:
+                category_change = CategoryChange(category=transaction.category)
+                self.categories.insert(0, category_change)
+
+            category_change.apply(transaction.total_change, reverse)
 
         account = transaction.account_transactions[0].account
         account_change = self.get_account_change(account.id)
@@ -131,30 +134,35 @@ class Statement(mongoengine.Document):
         if transaction.is_transfer():
             return
 
-        statements = list(Statement.objects.all_levels(month=transaction.date_accomplished.month,
-                                                  year=transaction.date_accomplished.year))
+        if transaction.date_accomplished:
+            statements = list(Statement.objects.all_levels(month=transaction.date_accomplished.month,
+                                                           year=transaction.date_accomplished.year,
+                                                           owner=transaction.owner))
+        else:
+            statements = list(Statement.objects(level=StatementLevel.GENERAL, owner=transaction.owner))
 
         available_levels = [statement.level for statement in statements]
 
-        if StatementLevel.MONTH not in available_levels:
-            month_statement = Statement(owner=transaction.owner,
-                                        level=StatementLevel.MONTH,
-                                        month=transaction.date_accomplished.month,
-                                        year=transaction.date_accomplished.year)
-            statements.append(month_statement)
+        if transaction.date_accomplished is not None:
+            if StatementLevel.MONTH not in available_levels:
+                month_statement = Statement(owner=transaction.owner,
+                                            level=StatementLevel.MONTH,
+                                            month=transaction.date_accomplished.month,
+                                            year=transaction.date_accomplished.year)
+                statements.append(month_statement)
 
-        if StatementLevel.YEAR not in available_levels:
-            year_statement = Statement(owner=transaction.owner,
-                                        level=StatementLevel.YEAR,
-                                        month=None,
-                                        year=transaction.date_accomplished.year)
-            statements.append(year_statement)
+            if StatementLevel.YEAR not in available_levels:
+                year_statement = Statement(owner=transaction.owner,
+                                           level=StatementLevel.YEAR,
+                                           month=None,
+                                           year=transaction.date_accomplished.year)
+                statements.append(year_statement)
 
         if StatementLevel.GENERAL not in available_levels:
             general_statement = Statement(owner=transaction.owner,
-                                        level=StatementLevel.GENERAL,
-                                        month=None,
-                                        year=None)
+                                          level=StatementLevel.GENERAL,
+                                          month=None,
+                                          year=None)
             statements.append(general_statement)
 
         for statement in statements:
@@ -165,7 +173,8 @@ class Statement(mongoengine.Document):
     @classmethod
     def remove_from_statements(cls, transaction: 'Transaction'):
         statements = list(Statement.objects.all_levels(month=transaction.date_accomplished.month,
-                                                       year=transaction.date_accomplished.year))
+                                                       year=transaction.date_accomplished.year,
+                                                       owner=transaction.owner))
 
         for statement in statements:
             statement.adjust(transaction, reverse=True)

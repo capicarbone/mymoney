@@ -1,5 +1,6 @@
 import datetime
 import pytest
+from mongoengine import signals
 from models import Account, InitialBalanceTransaction, IncomeTransaction, ExpenseTransaction, \
     Fund, Statement, StatementLevel
 
@@ -54,4 +55,4 @@ def test_initial_balance_computed_on_general_statement(create_and_load_transacti
     assert statement.get_fund_change(fund.id).change == changes[0]
 
 
-    # TODO Implement
+signals.post_save.connect(Statement.transaction_post_save, sender=InitialBalanceTransaction)

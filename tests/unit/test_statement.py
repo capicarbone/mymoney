@@ -66,7 +66,7 @@ def one_month_transactions(request, db, mongodb, user):
 
 def test_all_levels_query(user: User, one_month_transactions: List[Statement]):
     # TODO load several month, test all levels belongs to request years a months
-    statements = Statement.objects.all_levels(month=2, year=2021)
+    statements = Statement.objects.all_levels(month=2, year=2021, owner=user)
 
     assert len(statements) == 3
     result_levels = [statement.level for statement in statements]
@@ -97,7 +97,8 @@ def test_new_transaction_generates_new_statements(db, mongodb, user, change):
     transaction.save()
 
     statements = Statement.objects.all_levels(month=transaction_date.month,
-                                              year=transaction_date.year)
+                                              year=transaction_date.year,
+                                              owner=user)
 
     for statement in statements:
         assert statement is not None
@@ -153,7 +154,8 @@ def test_new_transaction_updates_existing_statements(db, mongodb, user, changes)
         transaction.save()
 
     statements = Statement.objects.all_levels(month=transaction_date.month,
-                                              year=transaction_date.year)
+                                              year=transaction_date.year,
+                                              owner=user)
 
     for statement in statements:
         total_income = sum([change for change in changes if change > 0])
@@ -181,7 +183,8 @@ def test_statements_consistency(user, one_month_transactions):
     transaction_date = one_month_transactions[0].date_accomplished
     expected_total_change = sum([t.total_change for t in one_month_transactions])
     statements = Statement.objects.all_levels(month=transaction_date.month,
-                                              year=transaction_date.year)
+                                              year=transaction_date.year,
+                                              owner=user)
 
     for statement in statements:
         assert is_consistent(statement) is True
@@ -195,7 +198,8 @@ def test_removed_transaction_changes_statements(user, one_month_transactions: Li
 
     for transaction in one_month_transactions:
         statements_initial_state: List[Statement] = list(Statement.objects.all_levels(month=transaction_date.month,
-                                                                                 year=transaction_date.year))
+                                                                                      year=transaction_date.year,
+                                                                                      owner=user))
 
         tr: Transaction = Transaction.objects(
             id=transaction.id).get()  # Getting a transaction instance instead of a specialization
@@ -203,7 +207,8 @@ def test_removed_transaction_changes_statements(user, one_month_transactions: Li
         tr.delete()
 
         statements_current_state: List[Statement] = list(Statement.objects.all_levels(month=transaction_date.month,
-                                                                                 year=transaction_date.year))
+                                                                                      year=transaction_date.year,
+                                                                                      owner=user))
 
         expected_total_change -= total_change
 
