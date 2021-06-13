@@ -1,6 +1,7 @@
 import datetime
 import pytest
-from models import Account, InitialBalanceTransaction, IncomeTransaction, ExpenseTransaction, Fund
+from models import Account, InitialBalanceTransaction, IncomeTransaction, ExpenseTransaction, \
+    Fund, Statement, StatementLevel
 
 
 @pytest.fixture()
@@ -42,7 +43,15 @@ def test_initial_balance_computed_on_account_balance(create_and_load_transaction
     assert account.balance == expected_balance
     assert fund.balance == changes[0] # The initial balance should be assigned to default fund
 
-def test_initial_balance_computed_on_general_balance(create_and_load_transactions, main_user_id):
-    pass
+
+def test_initial_balance_computed_on_general_statement(create_and_load_transactions, main_user_id):
+    account_id, changes = create_and_load_transactions
+
+    fund = Fund.objects(owner=main_user_id, is_default=True).get()
+    statement = Statement.objects(owner=main_user_id, level=StatementLevel.GENERAL).get()
+
+    assert statement.get_account_change(account_id).change == sum(changes)
+    assert statement.get_fund_change(fund.id).change == changes[0]
+
 
     # TODO Implement
