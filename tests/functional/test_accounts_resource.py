@@ -51,5 +51,6 @@ def test_account_with_initial_balance(client, authenticated_header):
     rv = client.get(transactions_url, query_string={'account_id': account_id}, headers=authenticated_header)
 
     items = rv.get_json()  # TODO extract from _items when pagination implemented
+
     assert len(items) == 1
-    assert items[0]['account'] == account_id
+    assert items[0]['account_transactions'][0]['account'] == account_id

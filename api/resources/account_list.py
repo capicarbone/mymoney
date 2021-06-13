@@ -2,7 +2,7 @@
 from typing import List
 from flask_restful import Resource, marshal_with, fields, reqparse
 from api.authentication import auth
-from models.account import Account
+from models import InitialBalanceTransaction, Account
 from flask import abort
 
 account_fields = {
@@ -22,6 +22,7 @@ class AccountListResource(Resource):
     def post(self) -> Account:
         parser = reqparse.RequestParser()
         parser.add_argument('name', required=True, type=str)
+        parser.add_argument('initial_balance', type=float, store_missing=False)
         args = parser.parse_args()
 
         if not args['name']:
@@ -29,4 +30,12 @@ class AccountListResource(Resource):
 
         account = Account(name=args['name'], owner=auth.current_user())
         account.save()
+
+        if 'initial_balance' in args:
+            InitialBalanceTransaction(
+                owner=auth.current_user(),
+                account_id=account.id,
+                change=args['initial_balance']
+            ).save()
+
         return account
