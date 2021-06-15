@@ -25,17 +25,6 @@ def add_commands(app):
         user.save()
         click.echo("User for email {} created!".format(email))
 
-    @app.cli.command('fix_assignment_word_for_fund_documents')
-    def fix_assignment_word_for_fund_documents():
-        host_uri = os.environ.get('MONGODB_URI', 'mongodb://localhost/mymoney')
-        database_name = pymongo.uri_parser.parse_uri(os.environ.get('MONGODB_URI', 'mongodb://localhost/mymoney'))['database']
-        mongo_client = pymongo.MongoClient(host_uri)
-        db = mongo_client[database_name]
-
-        db.fund.update({}, {'$rename': {'percentage_assigment': 'percentage_assignment'}}, multi=True)
-
-        click.echo("Fix applied")
-
     @app.cli.command('recreate-month-statements')
     def recreate_month_statements():
         """
