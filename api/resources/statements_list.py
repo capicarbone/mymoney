@@ -31,6 +31,8 @@ month_statement_fields = {
     'funds': fields.List(fields.Nested(fund_change)),
     'categories': fields.List(fields.Nested(category_change))
 }
+
+
 class StatementListResource(Resource):
     method_decorators = [auth.login_required]
 
@@ -43,17 +45,15 @@ class StatementListResource(Resource):
         query_args['owner'] = auth.current_user()
 
         parser = reqparse.RequestParser()
-        parser.add_argument('page', type=int, default=0)
+        parser.add_argument('page', type=int, default=1)
         parser.add_argument('items_per_page', type=int, default=12)
         pagination_args = parser.parse_args()
         items_per_page = pagination_args['items_per_page']
         page = pagination_args['page']
 
         query = Statement.objects(**query_args)\
-            .order_by('level', '-year', '-month')\
-            .limit(items_per_page)\
-            .skip(page*items_per_page)
+            .order_by('level', '-year', '-month')
 
-        return create_page_response(query, page)
+        return create_page_response(query, page, items_per_page)
 
 

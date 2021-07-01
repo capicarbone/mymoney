@@ -3,6 +3,7 @@ from enum import IntEnum
 
 import mongoengine
 from mongoengine.queryset.visitor import Q
+from flask_mongoengine import BaseQuerySet
 
 from .user import User
 from .account import Account
@@ -61,7 +62,7 @@ class StatementLevel(IntEnum):
     GENERAL = 1
 
 
-class StatementQuerySet(mongoengine.QuerySet):
+class StatementQuerySet(BaseQuerySet):
 
     def all_levels(self, month: int, year: int, owner):
         return self.filter(Q(level=StatementLevel.GENERAL, owner=owner)

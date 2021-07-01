@@ -167,7 +167,7 @@ def test_pagination(client, authenticated_header, load_transactions):
     assert res.status_code == 200
     data = res.get_json()
     assert type(data['_items']) is list
-    assert data['_page'] == 0
+    assert data['_page'] == 1
     assert len(data['_items']) == items_per_page
     assert data['_count'] == load_transactions
 
@@ -186,7 +186,7 @@ def test_pagination(client, authenticated_header, load_transactions):
 
 def test_order(client, authenticated_header, load_transactions):
 
-    page = 0
+    page = 1
     items = []
     while True:
         res = client.get(resource_url, headers=authenticated_header,
