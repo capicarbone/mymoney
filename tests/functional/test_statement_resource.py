@@ -162,7 +162,7 @@ def test_pagination(client, authenticated_header, load_transactions):
 
     res = client.get(resource_url,
                      headers=authenticated_header,
-                     query_string={'items_per_page': items_per_page})
+                     query_string={'page_size': items_per_page})
 
     assert res.status_code == 200
     data = res.get_json()
@@ -173,7 +173,7 @@ def test_pagination(client, authenticated_header, load_transactions):
 
     res = client.get(resource_url,
                      headers=authenticated_header,
-                     query_string={'items_per_page': items_per_page,
+                     query_string={'page_size': items_per_page,
                                    'page': 1})
 
     assert res.status_code == 200

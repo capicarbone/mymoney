@@ -17,12 +17,12 @@ def paged_entity_scheme(entity_fields: Dict) -> Dict:
 def parse_pagination_arguments():
     parser = reqparse.RequestParser()
     parser.add_argument('page', type=int, default=1)
-    parser.add_argument('items_per_page', type=int, default=12)
+    parser.add_argument('page_size', type=int, default=12)
     return parser.parse_args()
 
 def create_page_response(query) -> Dict:
     args = parse_pagination_arguments()
-    pagination = query.paginate(page=args['page'], per_page=args['items_per_page'])
+    pagination = query.paginate(page=args['page'], per_page=args['page_size'])
     return Page(
         items=pagination.items,
         count=query.count(),
