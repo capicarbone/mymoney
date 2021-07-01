@@ -3,6 +3,7 @@ from collections import namedtuple
 from api.authentication import auth
 from flask_restful import Resource, marshal_with, reqparse, fields
 from models.statement import Statement, AccountChange
+from ..pagination import paged_entity_scheme, Page, create_page_response
 
 account_change = {
     'account_id': fields.String(attribute='account.id'),
@@ -30,17 +31,10 @@ month_statement_fields = {
     'funds': fields.List(fields.Nested(fund_change)),
     'categories': fields.List(fields.Nested(category_change))
 }
-
-page = {
-    '_items': fields.List(fields.Nested(month_statement_fields), attribute='items'),
-    '_count': fields.Integer(attribute='count'),
-    '_page': fields.Integer(attribute='page')
-}
-
 class StatementListResource(Resource):
     method_decorators = [auth.login_required]
 
-    @marshal_with(page)
+    @marshal_with(paged_entity_scheme(month_statement_fields))
     def get(self):
         parser = reqparse.RequestParser()
         parser.add_argument('year', type=int, store_missing=False)
@@ -55,17 +49,11 @@ class StatementListResource(Resource):
         items_per_page = pagination_args['items_per_page']
         page = pagination_args['page']
 
-        statements = Statement.objects(**query_args)\
+        query = Statement.objects(**query_args)\
             .order_by('level', '-year', '-month')\
             .limit(items_per_page)\
             .skip(page*items_per_page)
 
-        Page = namedtuple('Page', ['items', 'count', 'page'])
-
-        return Page(
-            items=statements.all(),
-            count=statements.count(),
-            page=page
-        )._asdict()
+        return create_page_response(query, page)
 
 
