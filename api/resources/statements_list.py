@@ -44,16 +44,9 @@ class StatementListResource(Resource):
         query_args = parser.parse_args()
         query_args['owner'] = auth.current_user()
 
-        parser = reqparse.RequestParser()
-        parser.add_argument('page', type=int, default=1)
-        parser.add_argument('items_per_page', type=int, default=12)
-        pagination_args = parser.parse_args()
-        items_per_page = pagination_args['items_per_page']
-        page = pagination_args['page']
-
         query = Statement.objects(**query_args)\
             .order_by('level', '-year', '-month')
 
-        return create_page_response(query, page, items_per_page)
+        return create_page_response(query)
 
 
