@@ -8,6 +8,7 @@ from models.income_transaction import IncomeTransaction
 from models.expense_transaction import ExpenseTransaction
 from api.authentication import auth
 import dateutil.parser
+from ..pagination import paged_entity_scheme, create_page_response
 
 account_transaction_fields = {
     'account': fields.String(attribute='account.id'),
@@ -73,7 +74,7 @@ class TransactionListResource(Resource):
         return transaction
 
 
-    @marshal_with(transaction_fields)
+    @marshal_with(paged_entity_scheme(transaction_fields))
     def get(self):
         parser = reqparse.RequestParser()
         parser.add_argument('account_id', type=str, store_missing=False)
@@ -92,4 +93,4 @@ class TransactionListResource(Resource):
 
         query = Transaction.objects(**match).order_by('-date_accomplished')
 
-        return query.paginate(page=args['page'], per_page=args['page_size']).items
+        return create_page_response(query)
