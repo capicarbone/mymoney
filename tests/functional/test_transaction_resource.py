@@ -1,4 +1,6 @@
 
+from .utils import is_paginated
+
 resource_url = '/api/transactions'
 
 
@@ -7,8 +9,7 @@ def test_successful_get_transaction(client, authenticated_header):
     assert rv.status_code == 200
 
     json_data = rv.get_json()
-    assert  type(json_data) is list
-
+    assert is_paginated(json_data)
 
 def test_successful_post_income_transaction(client, authenticated_header):
 
