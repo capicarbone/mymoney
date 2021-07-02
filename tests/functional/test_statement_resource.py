@@ -120,7 +120,24 @@ def load_transactions(client,
 
 @pytest.fixture()
 def transactions(client, authenticated_header, load_transactions):
-    return client.get('/api/transactions', headers=authenticated_header).get_json()
+    transactions = []
+    page = 1
+
+    while True:
+        response = client.get('/api/transactions',
+                              query_string={'page': page},
+                              headers=authenticated_header)
+
+        if response.status_code != 200:
+            break
+
+        data = response.get_json()
+        items = data['_items']
+        transactions.extend(items)
+
+        page += 1
+
+    return transactions
 
 
 def test_transaction_post_creates_statements(client,
@@ -183,9 +200,7 @@ def test_pagination(client, authenticated_header, load_transactions):
     assert data['_count'] == load_transactions
 
 
-
 def test_order(client, authenticated_header, load_transactions):
-
     page = 1
     items = []
     while True:
@@ -265,7 +280,7 @@ def test_transaction_delete_modifies_related_statements(client, authenticated_he
                                                        'month': transaction_date.month}
                                          ).get_json()['_items'][0]
 
-    t = client.delete('/api/transaction/%s' % (test_transaction['id']), headers=authenticated_header)
+    client.delete('/api/transaction/%s' % (test_transaction['id']), headers=authenticated_header)
 
     statement_next_state = client.get(resource_url,
                                       headers=authenticated_header,
@@ -294,7 +309,15 @@ def test_transaction_delete_modifies_related_statements(client, authenticated_he
         (Decimal(fund['income']) + Decimal(fund['expense']) for fund in statement_next_state['funds'] if
          fund['fund_id'] == fund_id))
 
+    test_category_id = test_transaction['category']
+    category_change_initial_state = next(
+        (Decimal(category_change['change']) for category_change in statement_initial_state['categories'] if
+         category_change['category_id'] == test_category_id))
+
+    category_change_next_state = next(
+        (Decimal(category_change['change']) for category_change in statement_next_state['categories'] if
+         category_change['category_id'] == test_category_id))
+
     assert statement_account_next_change == statement_account_initial_change - account_change
     assert statement_fund_next_change == statement_fund_initial_change - fund_change
-    assert Decimal(statement_next_state['categories'][0]['change']) == Decimal(
-        statement_initial_state['categories'][0]['change']) - account_change
+    assert Decimal(category_change_next_state) == category_change_initial_state - account_change
