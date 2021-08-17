@@ -16,7 +16,7 @@ class User(mongoengine.Document):
     def post_save(cls, sender, document, created):
         if created is True:
             fund = Fund(owner=document,
-                        name='Unassigned',
+                        name="Free",
                         description="Default fund",
                         percentage_assignment=0,
                         is_default=True)
